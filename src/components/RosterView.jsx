@@ -194,7 +194,16 @@ export default function RosterView() {
   const lockedCount = players.filter((p) => p.chosenCharacter !== null).length;
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="relative min-h-screen flex flex-col overflow-hidden">
+      {/* Blurred Tuscany background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center scale-110"
+        style={{ backgroundImage: "url('/assets/maps/tuscany.jpg')", filter: 'blur(6px)' }}
+      />
+      <div className="absolute inset-0 bg-black/80" />
+
+      {/* Content layer */}
+      <div className="relative z-10 min-h-screen flex flex-col">
       {/* Header */}
       <div className="relative pt-6 pb-2 px-4 text-center">
         <div className="absolute top-6 left-4 z-20">
@@ -315,6 +324,7 @@ export default function RosterView() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
