@@ -360,29 +360,41 @@ export default function BattleView() {
               <div className="text-center text-[10px] text-gray-600 uppercase tracking-widest mb-3 font-mono">
                 Admin Controls
               </div>
-              <div className="flex gap-3 justify-center">
-                <motion.button
-                  onClick={() => handleDamageAttack(player1.id)}
-                  className="flex-1 max-w-[280px] py-4 px-4 rounded-xl text-sm sm:text-base font-black uppercase tracking-wide
-                    bg-gradient-to-r from-red-700 to-red-600 text-white
-                    border-2 border-red-500/50 hover:border-red-400
-                    shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]
-                    transition-all duration-200"
-                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
-                  +100% Damage to {player1?.name}
-                </motion.button>
+              {(() => {
+                const p1Color = FIGHTER_COLORS[player1?.chosenCharacter] || '#666';
+                const p2Color = FIGHTER_COLORS[player2?.chosenCharacter] || '#666';
+                return (
+                  <div className="flex gap-3 justify-center">
+                    <motion.button
+                      onClick={() => handleDamageAttack(player2.id)}
+                      className="flex-1 max-w-[280px] py-4 px-4 rounded-xl text-white border-2 flex flex-col items-center transition-all duration-200"
+                      style={{
+                        backgroundColor: p1Color,
+                        borderColor: p1Color,
+                        boxShadow: `0 0 20px ${p1Color}40`,
+                      }}
+                      whileHover={{ scale: 1.03, boxShadow: `0 0 35px ${p1Color}60` }}
+                      whileTap={{ scale: 0.95 }}>
+                      <span className="text-lg sm:text-xl font-black">🏆 {player1?.name} WINS!</span>
+                      <span className="text-xs sm:text-sm opacity-80 mt-1 block">+100% DMG to {player2?.name}</span>
+                    </motion.button>
 
-                <motion.button
-                  onClick={() => handleDamageAttack(player2.id)}
-                  className="flex-1 max-w-[280px] py-4 px-4 rounded-xl text-sm sm:text-base font-black uppercase tracking-wide
-                    bg-gradient-to-r from-blue-700 to-blue-600 text-white
-                    border-2 border-blue-500/50 hover:border-blue-400
-                    shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_30px_rgba(59,130,246,0.4)]
-                    transition-all duration-200"
-                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
-                  +100% Damage to {player2?.name}
-                </motion.button>
-              </div>
+                    <motion.button
+                      onClick={() => handleDamageAttack(player1.id)}
+                      className="flex-1 max-w-[280px] py-4 px-4 rounded-xl text-white border-2 flex flex-col items-center transition-all duration-200"
+                      style={{
+                        backgroundColor: p2Color,
+                        borderColor: p2Color,
+                        boxShadow: `0 0 20px ${p2Color}40`,
+                      }}
+                      whileHover={{ scale: 1.03, boxShadow: `0 0 35px ${p2Color}60` }}
+                      whileTap={{ scale: 0.95 }}>
+                      <span className="text-lg sm:text-xl font-black">🏆 {player2?.name} WINS!</span>
+                      <span className="text-xs sm:text-sm opacity-80 mt-1 block">+100% DMG to {player1?.name}</span>
+                    </motion.button>
+                  </div>
+                );
+              })()}
             </div>
           </motion.div>
         )}
