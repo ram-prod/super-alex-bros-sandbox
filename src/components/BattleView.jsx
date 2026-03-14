@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useGameStore from '../store/useGameStore';
 
@@ -12,13 +12,14 @@ const FIGHTER_COLORS = {
   frederik: '#ffdd44', vincent: '#ff44aa', devan: '#44ffdd', gereon: '#8888ff', noah: '#ff6666', alexander: '#ffd700',
 };
 
-// Explosion particles config
-const PARTICLES = Array.from({ length: 10 }, (_, i) => ({
+// Fountain particles — pre-generated random offsets
+const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
   id: i,
-  angle: (i / 10) * Math.PI * 2,
-  distance: 60 + Math.random() * 80,
-  delay: Math.random() * 0.15,
-  emoji: i % 3 === 0 ? '💥' : '💔',
+  xOffset: (Math.random() - 0.5) * 150,
+  peakY: -200 - Math.random() * 100,
+  delay: Math.random() * 0.1,
+  emoji: ['💔', '💥', '✨', '💔', '💥'][i % 5],
+  size: 0.7 + Math.random() * 0.6,
 }));
 
 function CharacterSprite({ player, side, battleState, isLoser }) {
@@ -27,7 +28,6 @@ function CharacterSprite({ player, side, battleState, isLoser }) {
   const [imgError, setImgError] = useState(false);
   const isLeft = side === 'left';
 
-  // Determine visibility and animation
   const shouldShow =
     (isLeft && ['intro_p1', 'intro_p2', 'intro_fight', 'idle_question', 'action_throw', 'action_hit'].includes(battleState)) ||
     (!isLeft && ['intro_p2', 'intro_fight', 'idle_question', 'action_throw', 'action_hit'].includes(battleState));
@@ -38,19 +38,23 @@ function CharacterSprite({ player, side, battleState, isLoser }) {
     <AnimatePresence>
       {shouldShow && (
         <motion.div
-          className={`absolute ${isLeft ? 'left-4 sm:left-8' : 'right-4 sm:right-8'} bottom-[20%] sm:bottom-[15%] z-20`}
+          className={`absolute bottom-[10vh] z-10
+            ${isLeft
+              ? 'left-[5vw] sm:left-[10vw] md:left-[15vw]'
+              : 'right-[5vw] sm:right-[10vw] md:right-[15vw]'}`}
           initial={{ x: isLeft ? '-100vw' : '100vw', opacity: 0 }}
           animate={{
             x: 0,
             opacity: 1,
-            filter: isHit ? ['brightness(1)', 'brightness(3) saturate(0) hue-rotate(0deg)', 'brightness(1.5) saturate(2) hue-rotate(-30deg)', 'brightness(1)'] : 'brightness(1)',
+            filter: isHit
+              ? ['brightness(1)', 'brightness(3) saturate(0)', 'brightness(1.5) saturate(2) hue-rotate(-30deg)', 'brightness(1)']
+              : 'brightness(1)',
           }}
           transition={{
             x: { type: 'tween', ease: 'easeOut', duration: 0.3 },
             filter: isHit ? { duration: 0.6, times: [0, 0.2, 0.5, 1] } : {},
           }}
         >
-          {/* Idle bob animation */}
           <motion.div
             animate={battleState === 'idle_question' ? { y: [0, -6, 0] } : {}}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -61,21 +65,17 @@ function CharacterSprite({ player, side, battleState, isLoser }) {
                   src={`/assets/characters/${charId}.jpg`}
                   alt={player?.name}
                   onError={() => setImgError(true)}
-                  className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl object-cover border-3 shadow-lg"
-                  style={{
-                    borderColor: color,
-                    boxShadow: `0 0 25px ${color}50`,
-                  }}
+                  className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 rounded-2xl object-cover border-3 shadow-lg"
+                  style={{ borderColor: color, boxShadow: `0 0 30px ${color}50` }}
                 />
               ) : (
                 <div
-                  className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl border-3 flex items-center justify-center text-5xl sm:text-6xl"
-                  style={{ borderColor: color, backgroundColor: `${color}20`, boxShadow: `0 0 25px ${color}50` }}
+                  className="w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64 rounded-2xl border-3 flex items-center justify-center text-5xl sm:text-6xl md:text-7xl"
+                  style={{ borderColor: color, backgroundColor: `${color}20`, boxShadow: `0 0 30px ${color}50` }}
                 >
                   {FIGHTER_EMOJI[charId] || '❓'}
                 </div>
               )}
-              {/* Name tag */}
               <div
                 className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold whitespace-nowrap"
                 style={{ backgroundColor: `${color}cc`, color: '#000' }}
@@ -121,20 +121,26 @@ function DamageHUD({ player, damage, side }) {
 }
 
 function Projectile({ fromSide, onComplete }) {
+  const isFromLeft = fromSide === 'left';
+
   return (
     <motion.div
-      className="absolute z-40 text-5xl sm:text-6xl"
-      style={{
-        top: '40%',
-        [fromSide === 'left' ? 'left' : 'right']: '15%',
+      className="absolute z-30 text-5xl sm:text-6xl"
+      style={{ top: '45%' }}
+      initial={{
+        left: isFromLeft ? '15vw' : '85vw',
+        x: '-50%',
       }}
       animate={{
-        x: fromSide === 'left' ? [0, 200, 350] : [0, -200, -350],
-        y: [0, -60, 10],
+        left: isFromLeft ? '85vw' : '15vw',
+        y: [0, -250, 0],
         rotate: [0, 360, 720],
-        scale: [1, 1.3, 1],
       }}
-      transition={{ duration: 2.0, ease: 'linear' }}
+      transition={{
+        left: { duration: 1.5, ease: 'linear' },
+        y: { duration: 1.5, ease: 'easeInOut' },
+        rotate: { duration: 1.5, ease: 'linear' },
+      }}
       onAnimationComplete={onComplete}
     >
       🍺
@@ -143,24 +149,33 @@ function Projectile({ fromSide, onComplete }) {
 }
 
 function HitExplosion({ side }) {
-  const baseX = side === 'right' ? 'calc(100% - 120px)' : '80px';
+  const isRight = side === 'right';
 
   return (
     <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
       {PARTICLES.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute text-2xl sm:text-3xl"
-          style={{ left: baseX, top: '35%' }}
+          className="absolute"
+          style={{
+            left: isRight ? '85vw' : '15vw',
+            top: '45%',
+            fontSize: `${p.size * 1.8}rem`,
+            transform: 'translate(-50%, -50%)',
+          }}
           initial={{ opacity: 1, scale: 1 }}
           animate={{
-            x: Math.cos(p.angle) * p.distance,
-            y: Math.sin(p.angle) * p.distance - 20,
-            opacity: 0,
-            scale: 0.3,
-            rotate: Math.random() * 360,
+            x: [0, p.xOffset, p.xOffset * 1.2],
+            y: [0, p.peakY, 100],
+            opacity: [1, 1, 0],
+            scale: [1, 1.2, 0.5],
           }}
-          transition={{ duration: 0.8, delay: p.delay, ease: 'easeOut' }}
+          transition={{
+            duration: 1.5,
+            delay: p.delay,
+            ease: 'easeOut',
+            y: { ease: [0.2, 0, 0.8, 1] }, // gravity-like
+          }}
         >
           {p.emoji}
         </motion.div>
@@ -168,10 +183,14 @@ function HitExplosion({ side }) {
       {/* Big central flash */}
       <motion.div
         className="absolute text-6xl sm:text-7xl"
-        style={{ left: baseX, top: '32%', transform: 'translate(-50%, -50%)' }}
+        style={{
+          left: isRight ? '85vw' : '15vw',
+          top: '42%',
+          transform: 'translate(-50%, -50%)',
+        }}
         initial={{ scale: 0, opacity: 1 }}
-        animate={{ scale: [0, 2, 0], opacity: [1, 1, 0] }}
-        transition={{ duration: 0.6 }}
+        animate={{ scale: [0, 2.5, 0], opacity: [1, 1, 0] }}
+        transition={{ duration: 0.5 }}
       >
         💥
       </motion.div>
@@ -184,8 +203,8 @@ export default function BattleView() {
   const { player1, player2, p1Damage, p2Damage } = currentMatch;
 
   const [battleState, setBattleState] = useState('intro_arena');
-  const [throwFrom, setThrowFrom] = useState(null); // 'left' or 'right'
-  const [hitSide, setHitSide] = useState(null); // 'left' or 'right' (loser side)
+  const [throwFrom, setThrowFrom] = useState(null);
+  const [hitSide, setHitSide] = useState(null);
   const [pendingLoserId, setPendingLoserId] = useState(null);
 
   // Intro sequence
@@ -199,7 +218,6 @@ export default function BattleView() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Handle damage with projectile animation
   const handleDamageAttack = useCallback((loserId) => {
     if (battleState !== 'idle_question') return;
 
@@ -213,16 +231,13 @@ export default function BattleView() {
     setBattleState('action_throw');
   }, [battleState, player1]);
 
-  // Throw complete → hit phase
   const handleThrowComplete = useCallback(() => {
     setBattleState('action_hit');
 
-    // Register damage in Zustand NOW
     if (pendingLoserId) {
       awardDamage(pendingLoserId);
     }
 
-    // After hit animation, return to idle (if game didn't end)
     setTimeout(() => {
       const phase = useGameStore.getState().gamePhase;
       if (phase === 'battle') {
@@ -231,12 +246,11 @@ export default function BattleView() {
         setHitSide(null);
         setPendingLoserId(null);
       }
-    }, 1500);
+    }, 2000);
   }, [pendingLoserId, awardDamage]);
 
   const isBlurred = ['idle_question', 'action_throw', 'action_hit'].includes(battleState);
   const showUI = battleState === 'idle_question';
-  const showChars = !['intro_arena'].includes(battleState);
 
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden">
@@ -257,23 +271,11 @@ export default function BattleView() {
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 4px)' }} />
 
-      {/* Character sprites */}
-      {showChars && (
-        <>
-          <CharacterSprite
-            player={player1}
-            side="left"
-            battleState={battleState}
-            isLoser={battleState === 'action_hit' && hitSide === 'left'}
-          />
-          <CharacterSprite
-            player={player2}
-            side="right"
-            battleState={battleState}
-            isLoser={battleState === 'action_hit' && hitSide === 'right'}
-          />
-        </>
-      )}
+      {/* Character sprites — z-10 so they sit behind center UI */}
+      <CharacterSprite player={player1} side="left" battleState={battleState}
+        isLoser={battleState === 'action_hit' && hitSide === 'left'} />
+      <CharacterSprite player={player2} side="right" battleState={battleState}
+        isLoser={battleState === 'action_hit' && hitSide === 'right'} />
 
       {/* Projectile */}
       <AnimatePresence>
@@ -282,22 +284,20 @@ export default function BattleView() {
         )}
       </AnimatePresence>
 
-      {/* Hit explosion */}
+      {/* Hit explosion fountain */}
       <AnimatePresence>
         {battleState === 'action_hit' && hitSide && (
           <HitExplosion side={hitSide} />
         )}
       </AnimatePresence>
 
-      {/* FIGHT! intro text */}
+      {/* FIGHT! intro */}
       <AnimatePresence>
         {battleState === 'intro_fight' && (
           <motion.div
             className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.3 } }}
-          >
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}>
             <motion.h1
               className="text-8xl sm:text-9xl md:text-[11rem] font-black italic text-white"
               style={{
@@ -310,26 +310,17 @@ export default function BattleView() {
             >
               FIGHT!
             </motion.h1>
-            {/* Flash */}
-            <motion.div
-              className="absolute inset-0 bg-yellow-400 pointer-events-none"
-              initial={{ opacity: 0.7 }}
-              animate={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-            />
+            <motion.div className="absolute inset-0 bg-yellow-400 pointer-events-none"
+              initial={{ opacity: 0.7 }} animate={{ opacity: 0 }} transition={{ duration: 0.4 }} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* HUD — always visible after intro */}
+      {/* HUD */}
       <AnimatePresence>
         {['idle_question', 'action_throw', 'action_hit', 'intro_fight'].includes(battleState) && (
-          <motion.div
-            className="relative z-20 px-4 sm:px-8 pt-6"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div className="relative z-20 px-4 sm:px-8 pt-6"
+            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <div className="max-w-4xl mx-auto flex items-start justify-between">
               <DamageHUD player={player1} damage={p1Damage} side="left" />
               <motion.div className="text-xl text-yellow-400/60 font-black pt-4"
@@ -343,23 +334,19 @@ export default function BattleView() {
         )}
       </AnimatePresence>
 
-      {/* Question card + Admin controls */}
+      {/* Question card + Admin controls — z-20 to sit in front of characters */}
       <AnimatePresence>
         {showUI && (
           <motion.div
             className="relative z-20 flex-1 flex flex-col items-center justify-center px-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
-            transition={{ duration: 0.4 }}
-          >
+            transition={{ duration: 0.4 }}>
             {/* Question area */}
             <div className="w-full max-w-lg bg-gray-900/70 backdrop-blur-md border border-gray-700/50 rounded-2xl p-6 sm:p-8 text-center mb-6">
-              <motion.h2
-                className="text-2xl sm:text-3xl font-black mb-3"
+              <motion.h2 className="text-2xl sm:text-3xl font-black mb-3"
                 animate={{ color: ['#facc15', '#f97316', '#ef4444', '#f97316', '#facc15'] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
+                transition={{ duration: 4, repeat: Infinity }}>
                 BATTLE ON!
               </motion.h2>
               <div className="text-gray-500 text-sm border border-dashed border-gray-700 rounded-lg p-4">
@@ -381,10 +368,8 @@ export default function BattleView() {
                     border-2 border-red-500/50 hover:border-red-400
                     shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]
                     transition-all duration-200"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  🍺 → {player1?.name}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
+                  +100% Damage to {player1?.name}
                 </motion.button>
 
                 <motion.button
@@ -394,10 +379,8 @@ export default function BattleView() {
                     border-2 border-blue-500/50 hover:border-blue-400
                     shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:shadow-[0_0_30px_rgba(59,130,246,0.4)]
                     transition-all duration-200"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  🍺 → {player2?.name}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
+                  +100% Damage to {player2?.name}
                 </motion.button>
               </div>
             </div>
