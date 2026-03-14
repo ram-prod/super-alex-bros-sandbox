@@ -1,0 +1,152 @@
+import { motion } from 'framer-motion';
+import useGameStore from '../store/useGameStore';
+
+const FIGHTER_EMOJI = {
+  ruggero: '🔥', koen: '⚡', matthew: '🌊', martin: '🗡️', robin: '🏹',
+  frederik: '🛡️', vincent: '💎', devan: '🌀', gereon: '⚔️', noah: '🌩️', alexander: '👑',
+};
+
+export default function VsScreenView() {
+  const { currentMatch, startBattle, characters } = useGameStore();
+  const { player1, player2 } = currentMatch;
+
+  const getCharName = (p) => characters.find((c) => c.id === p?.chosenCharacter)?.name || '???';
+
+  return (
+    <div className="relative min-h-screen overflow-hidden flex flex-col">
+      {/* Split background */}
+      <div className="absolute inset-0 flex">
+        <div className="w-1/2 bg-gradient-to-br from-red-950 via-red-900/80 to-black" />
+        <div className="w-1/2 bg-gradient-to-bl from-blue-950 via-blue-900/80 to-black" />
+      </div>
+
+      {/* Diagonal slash */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute top-0 left-1/2 w-2 h-full -translate-x-1/2 bg-gradient-to-b from-yellow-400 via-white to-yellow-400 opacity-60 blur-sm"
+          style={{ transform: 'translateX(-50%) skewX(-5deg)' }}
+        />
+      </div>
+
+      {/* Scanlines */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px)',
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
+        {/* Fighters */}
+        <div className="w-full max-w-4xl flex items-center justify-between mb-8">
+          {/* Player 1 */}
+          <motion.div
+            className="text-center flex-1"
+            initial={{ x: '-100vw', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 80, damping: 14, duration: 1.2 }}
+          >
+            <motion.div
+              className="text-7xl sm:text-8xl mb-4"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {FIGHTER_EMOJI[player1?.chosenCharacter] || '❓'}
+            </motion.div>
+            <div className="text-3xl sm:text-4xl font-black text-white mb-1 drop-shadow-lg">
+              {player1?.name}
+            </div>
+            <div className="text-sm text-red-400 font-bold uppercase tracking-widest">
+              {getCharName(player1)}
+            </div>
+          </motion.div>
+
+          {/* VS */}
+          <motion.div
+            className="mx-4 flex-shrink-0"
+            initial={{ scale: 5, opacity: 0, rotate: -15 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ delay: 0.8, type: 'spring', stiffness: 150, damping: 12 }}
+          >
+            <motion.div
+              className="text-7xl sm:text-8xl md:text-9xl font-black"
+              animate={{
+                textShadow: [
+                  '0 0 20px rgba(250,204,21,0.4), 0 0 60px rgba(250,204,21,0.2)',
+                  '0 0 40px rgba(250,204,21,0.8), 0 0 100px rgba(250,204,21,0.4)',
+                  '0 0 20px rgba(250,204,21,0.4), 0 0 60px rgba(250,204,21,0.2)',
+                ],
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+              style={{
+                WebkitTextStroke: '2px rgba(255,255,255,0.3)',
+                color: 'transparent',
+                background: 'linear-gradient(180deg, #facc15, #f97316, #ef4444)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+              }}
+            >
+              VS
+            </motion.div>
+          </motion.div>
+
+          {/* Player 2 */}
+          <motion.div
+            className="text-center flex-1"
+            initial={{ x: '100vw', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 80, damping: 14, duration: 1.2 }}
+          >
+            <motion.div
+              className="text-7xl sm:text-8xl mb-4"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+            >
+              {FIGHTER_EMOJI[player2?.chosenCharacter] || '❓'}
+            </motion.div>
+            <div className="text-3xl sm:text-4xl font-black text-white mb-1 drop-shadow-lg">
+              {player2?.name}
+            </div>
+            <div className="text-sm text-blue-400 font-bold uppercase tracking-widest">
+              {getCharName(player2)}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* COMMENCE BATTLE */}
+        <motion.button
+          onClick={startBattle}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.5, type: 'spring', stiffness: 150 }}
+          className="mt-4"
+        >
+          <motion.div
+            className="px-10 sm:px-14 py-4 sm:py-5 text-xl sm:text-2xl font-black uppercase tracking-[0.25em]
+              border-2 border-yellow-400/50 text-yellow-300 rounded-xl
+              bg-gradient-to-r from-red-500/10 via-yellow-500/10 to-red-500/10 backdrop-blur-sm"
+            animate={{
+              borderColor: [
+                'rgba(250,204,21,0.3)',
+                'rgba(250,204,21,0.9)',
+                'rgba(250,204,21,0.3)',
+              ],
+              boxShadow: [
+                '0 0 20px rgba(250,204,21,0.1)',
+                '0 0 60px rgba(250,204,21,0.4)',
+                '0 0 20px rgba(250,204,21,0.1)',
+              ],
+            }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+          >
+            ⚔️ COMMENCE BATTLE ⚔️
+          </motion.div>
+        </motion.button>
+      </div>
+    </div>
+  );
+}
