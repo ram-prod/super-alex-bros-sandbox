@@ -1,0 +1,27 @@
+{
+  "characters": [
+    { "id": "mario", "name": "Mario" },
+    { "id": "dk", "name": "Donkey Kong" },
+    { "id": "samus", "name": "Samus" },
+    { "id": "link", "name": "Link" },
+    { "id": "pikachu", "name": "Pikachu" },
+    { "id": "kirby", "name": "Kirby" },
+    { "id": "fox", "name": "Fox" },
+    { "id": "yoshi", "name": "Yoshi" },
+    { "id": "luigi", "name": "Luigi" },
+    { "id": "falcon", "name": "Captain Falcon" },
+    { "id": "ness", "name": "Ness" }
+  ],
+  "maps": [
+    { "id": "amsterdam", "name": "Amsterdam Arena" },
+    { "id": "dusseldorf", "name": "Düsseldorf Dome" },
+    { "id": "luxembourg", "name": "Luxembourg Fortress" }
+  ],
+  "content": [
+    { "id": 1, "type": "trivia", "question": "What year was the original Smash Bros released?", "answer": "1999" },
+    { "id": 2, "type": "trivia", "question": "Who is the fastest character?", "answer": "Captain Falcon" },
+    { "id": 3, "type": "challenge", "question": "First to press the button wins!", "answer": null },
+    { "id": 4, "type": "trivia", "question": "How many characters in Smash 64?", "answer": "12" },
+    { "id": 5, "type": "challenge", "question": "Mash the button — highest count wins!", "answer": null }
+  ]
+}
