@@ -27,7 +27,7 @@ export default function SplashView() {
         className="absolute inset-0 bg-cover bg-center scale-110"
         style={{ backgroundImage: "url('/assets/maps/tuscany.jpg')" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
       {/* Scanlines */}
       <div

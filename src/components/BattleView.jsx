@@ -63,7 +63,7 @@ export default function BattleView() {
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url('/assets/maps/${selectedMap}.jpg')` }}
       />
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" />
 
       {/* Scanlines */}
       <div

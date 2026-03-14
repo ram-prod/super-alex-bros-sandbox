@@ -7,6 +7,7 @@ const createPlayers = (count) =>
     name: `Player ${i + 1}`,
     chosenCharacter: null,
     isEliminated: false,
+    wins: 0,
   }));
 
 const pickNextTwo = (players) => {
@@ -20,10 +21,12 @@ const useGameStore = create((set, get) => ({
   gamePhase: 'splash',
   tournamentSize: 11,
   players: createPlayers(11),
-  currentTurn: 1, // which player is currently selecting
+  currentTurn: 1,
   currentMatch: { player1: null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null },
   selectedMap: null,
   matchWinner: null,
+  tournamentWinner: null, // player with most wins at the end
+  isTournamentOver: false,
   characters: gameData.characters,
   maps: gameData.maps,
 
@@ -42,7 +45,6 @@ const useGameStore = create((set, get) => ({
       const player = state.players.find((p) => p.id === playerId);
       if (!player) return {};
 
-      // If clicking the same character they already have → deselect
       if (player.chosenCharacter === characterId) {
         const players = state.players.map((p) =>
           p.id === playerId ? { ...p, chosenCharacter: null } : p
@@ -50,23 +52,19 @@ const useGameStore = create((set, get) => ({
         return { players };
       }
 
-      // Check if character is taken by someone else
       const takenBy = state.players.find(
         (p) => p.id !== playerId && p.chosenCharacter === characterId
       );
-      if (takenBy) return {}; // can't take it
+      if (takenBy) return {};
 
-      // Assign new character
       const players = state.players.map((p) =>
         p.id === playerId ? { ...p, chosenCharacter: characterId } : p
       );
 
-      // Auto-advance turn to next player without a character
       const nextUnchosen = players.find((p) => p.id > playerId && !p.chosenCharacter);
       const firstUnchosen = players.find((p) => !p.chosenCharacter);
       const nextTurn = nextUnchosen?.id || firstUnchosen?.id || state.currentTurn;
 
-      // Do NOT auto-change phase — wait for confirmRoster
       return { players, currentTurn: nextTurn };
     }),
 
@@ -101,25 +99,41 @@ const useGameStore = create((set, get) => ({
 
       const newMatch = { ...m, p1Damage: newP1Damage, p2Damage: newP2Damage };
 
-      // Instant checkMatchWinner
+      // Check KO
+      let winner = null;
+      let loserId = null;
       if (newP1Damage >= 200) {
-        return {
-          currentMatch: newMatch,
-          players: state.players.map((p) =>
-            p.id === m.player1.id ? { ...p, isEliminated: true } : p
-          ),
-          matchWinner: m.player2,
-          gamePhase: 'victory',
-        };
+        winner = m.player2;
+        loserId = m.player1.id;
+      } else if (newP2Damage >= 200) {
+        winner = m.player1;
+        loserId = m.player2.id;
       }
-      if (newP2Damage >= 200) {
+
+      if (winner) {
+        const players = state.players.map((p) => {
+          if (p.id === loserId) return { ...p, isEliminated: true };
+          if (p.id === winner.id) return { ...p, wins: p.wins + 1 };
+          return p;
+        });
+
+        const alive = players.filter((p) => !p.isEliminated);
+        const isTournamentOver = alive.length < 2;
+
+        // Determine tournament winner by most wins
+        let tournamentWinner = null;
+        if (isTournamentOver) {
+          const sorted = [...players].sort((a, b) => b.wins - a.wins);
+          tournamentWinner = sorted[0];
+        }
+
         return {
           currentMatch: newMatch,
-          players: state.players.map((p) =>
-            p.id === m.player2.id ? { ...p, isEliminated: true } : p
-          ),
-          matchWinner: m.player1,
+          players,
+          matchWinner: winner,
           gamePhase: 'victory',
+          isTournamentOver,
+          tournamentWinner,
         };
       }
 
@@ -129,10 +143,7 @@ const useGameStore = create((set, get) => ({
   nextMatch: () =>
     set((state) => {
       const alive = state.players.filter((p) => !p.isEliminated);
-      if (alive.length < 2) {
-        // Tournament is over — stay in victory, only allow reset
-        return {};
-      }
+      if (alive.length < 2) return {};
       return {
         gamePhase: 'map_select',
         selectedMap: null,
@@ -156,6 +167,8 @@ const useGameStore = create((set, get) => ({
       currentMatch: { player1: null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null },
       selectedMap: null,
       matchWinner: null,
+      tournamentWinner: null,
+      isTournamentOver: false,
     })),
 }));
 

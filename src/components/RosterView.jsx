@@ -200,7 +200,7 @@ export default function RosterView() {
         className="absolute inset-0 bg-cover bg-center scale-110"
         style={{ backgroundImage: "url('/assets/maps/tuscany.jpg')", filter: 'blur(6px)' }}
       />
-      <div className="absolute inset-0 bg-black/80" />
+      <div className="absolute inset-0 bg-black/65" />
 
       {/* Content layer */}
       <div className="relative z-10 min-h-screen flex flex-col">
