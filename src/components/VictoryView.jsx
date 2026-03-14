@@ -126,6 +126,7 @@ export default function VictoryView() {
               className="flex flex-col items-center"
             >
               <div className="text-6xl mb-4">{FIGHTER_EMOJI[realWinner?.chosenCharacter] || '⭐'}</div>
+              <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono mb-2 inline-block">P{realWinner?.id}</span>
               <h2 className="text-5xl sm:text-6xl md:text-7xl font-black leading-tight"
                 style={{ filter: 'drop-shadow(0 6px 0 rgba(0,0,0,0.5))' }}>
                 <span style={{ color: winnerColor }}>{realWinner?.name}</span>
@@ -174,11 +175,11 @@ export default function VictoryView() {
                 </motion.div>
               </motion.div>
 
+              <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono mb-1 inline-block">P{realWinner?.id}</span>
               <h2 className="text-4xl sm:text-5xl font-black mb-1"
                 style={{ color: winnerColor, filter: 'drop-shadow(0 4px 0 rgba(0,0,0,0.4))' }}>
                 {realWinner?.name}
               </h2>
-              <p className="text-lg text-gray-400 font-bold uppercase tracking-widest mb-4">{winnerCharName}</p>
 
               {isTournamentOver && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}

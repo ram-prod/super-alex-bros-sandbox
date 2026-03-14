@@ -100,6 +100,7 @@ function DamageHUD({ player, damage, side }) {
       <div className={`flex items-center gap-2 ${!isLeft && 'flex-row-reverse'}`}>
         <span className="text-xl sm:text-2xl">{FIGHTER_EMOJI[charId] || '❓'}</span>
         <span className="text-sm sm:text-base font-bold text-white">{player?.name}</span>
+        <span className="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded-full font-mono">P{player?.id}</span>
       </div>
       <motion.span
         key={damage}

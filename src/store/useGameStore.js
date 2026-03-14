@@ -88,10 +88,11 @@ const useGameStore = create((set, get) => ({
       const player = state.players.find((p) => p.id === playerId);
       if (!player) return {};
       if (player.chosenCharacter === characterId) {
-        return { players: state.players.map((p) => p.id === playerId ? { ...p, chosenCharacter: null } : p) };
+        return { players: state.players.map((p) => p.id === playerId ? { ...p, chosenCharacter: null, name: `Player ${p.id}` } : p) };
       }
       if (state.players.find((p) => p.id !== playerId && p.chosenCharacter === characterId)) return {};
-      const players = state.players.map((p) => p.id === playerId ? { ...p, chosenCharacter: characterId } : p);
+      const charName = state.characters.find((c) => c.id === characterId)?.name || `Player ${playerId}`;
+      const players = state.players.map((p) => p.id === playerId ? { ...p, chosenCharacter: characterId, name: charName } : p);
       const nextUnchosen = players.find((p) => p.id > playerId && !p.chosenCharacter);
       const firstUnchosen = players.find((p) => !p.chosenCharacter);
       return { players, currentTurn: nextUnchosen?.id || firstUnchosen?.id || state.currentTurn };

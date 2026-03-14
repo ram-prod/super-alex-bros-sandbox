@@ -243,14 +243,13 @@ export default function RosterView() {
       >
         <div className="inline-flex items-center gap-3 bg-gray-900/80 border border-gray-700/50 rounded-full px-6 py-2">
           <div className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse" />
+          <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono">P{currentTurn}</span>
           <span className="text-white font-bold text-lg">
-            Player {currentTurn}
+            {currentPlayer?.chosenCharacter ? currentPlayer.name : `Player ${currentTurn}`}
           </span>
           <span className="text-gray-400">—</span>
           <span className="text-gray-300">
-            {currentPlayer?.chosenCharacter
-              ? `Selected ${characters.find((c) => c.id === currentPlayer.chosenCharacter)?.name}`
-              : 'Pick a fighter!'}
+            {currentPlayer?.chosenCharacter ? '✅ Locked in' : 'Pick a fighter!'}
           </span>
         </div>
       </motion.div>

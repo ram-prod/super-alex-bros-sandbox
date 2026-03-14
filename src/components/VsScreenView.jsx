@@ -55,11 +55,9 @@ export default function VsScreenView() {
             >
               {FIGHTER_EMOJI[player1?.chosenCharacter] || '❓'}
             </motion.div>
+            <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono mb-1 inline-block">P{player1?.id}</span>
             <div className="text-3xl sm:text-4xl font-black text-white mb-1 drop-shadow-lg">
               {player1?.name}
-            </div>
-            <div className="text-sm text-red-400 font-bold uppercase tracking-widest">
-              {getCharName(player1)}
             </div>
           </motion.div>
 
@@ -106,11 +104,9 @@ export default function VsScreenView() {
             >
               {FIGHTER_EMOJI[player2?.chosenCharacter] || '❓'}
             </motion.div>
+            <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono mb-1 inline-block">P{player2?.id}</span>
             <div className="text-3xl sm:text-4xl font-black text-white mb-1 drop-shadow-lg">
               {player2?.name}
-            </div>
-            <div className="text-sm text-blue-400 font-bold uppercase tracking-widest">
-              {getCharName(player2)}
             </div>
           </motion.div>
         </div>

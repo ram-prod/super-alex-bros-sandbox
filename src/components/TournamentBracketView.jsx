@@ -48,6 +48,7 @@ function PoolCard({ poolKey, playerIds, players, completedMatches }) {
               <span className="text-sm w-5 text-center font-mono text-gray-500">{i + 1}</span>
               <span className="text-base">{FIGHTER_EMOJI[p.chosenCharacter] || '?'}</span>
               <span className="text-sm font-bold text-white">{p.name}</span>
+              <span className="text-[10px] bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded-full font-mono">P{p.id}</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs font-mono text-green-400">{p.wins}W</span>
