@@ -28,7 +28,7 @@ export default function SplashView() {
       text: 'BROS',
       gradient: 'from-red-400 via-pink-500 to-purple-500',
       initial: { x: '-100vw', opacity: 0 },
-      delay: 1,
+      delay: 1.0,
     },
   ];
 
@@ -60,12 +60,12 @@ export default function SplashView() {
           className="text-gray-400 text-xs sm:text-sm uppercase tracking-[0.5em] mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2.2 }}
+          transition={{ delay: 1.8 }}
         >
           The Ultimate Bachelor Tournament
         </motion.p>
 
-        {/* Title — each word slams in */}
+        {/* Title — hard tween slams */}
         <div className="space-y-0 leading-none mb-8">
           {titleWords.map((w) => (
             <motion.div
@@ -73,29 +73,21 @@ export default function SplashView() {
               initial={w.initial}
               animate={{ x: 0, opacity: 1 }}
               transition={{
-                type: 'spring',
-                bounce: 0.3,
-                duration: 1.5,
+                type: 'tween',
+                ease: 'easeOut',
+                duration: 0.2,
                 delay: w.delay,
               }}
             >
-              <motion.h1
+              <h1
                 className={`text-7xl sm:text-8xl md:text-9xl font-black bg-gradient-to-r ${w.gradient} bg-clip-text text-transparent`}
                 style={{
                   WebkitTextStroke: '1px rgba(255,255,255,0.1)',
                   lineHeight: 1.05,
                 }}
-                animate={{
-                  filter: [
-                    'drop-shadow(0 0 10px rgba(255,255,255,0.1))',
-                    'drop-shadow(0 0 30px rgba(255,255,255,0.2))',
-                    'drop-shadow(0 0 10px rgba(255,255,255,0.1))',
-                  ],
-                }}
-                transition={{ duration: 3, repeat: Infinity, delay: w.delay + 1.5 }}
               >
                 {w.text}
-              </motion.h1>
+              </h1>
             </motion.div>
           ))}
         </div>
@@ -105,12 +97,12 @@ export default function SplashView() {
           className="text-5xl mb-8"
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
-          transition={{ delay: 1.8, type: 'spring', stiffness: 200 }}
+          transition={{ delay: 1.4, type: 'tween', ease: 'easeOut', duration: 0.3 }}
         >
           <motion.span
             className="inline-block"
             animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.15, 1] }}
-            transition={{ duration: 3, repeat: Infinity, delay: 2.5 }}
+            transition={{ duration: 3, repeat: Infinity, delay: 2 }}
           >
             ⚡
           </motion.span>
@@ -124,7 +116,7 @@ export default function SplashView() {
           }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 2.5, type: 'spring', stiffness: 150 }}
+          transition={{ delay: 2, type: 'tween', ease: 'easeOut', duration: 0.3 }}
           className="relative"
         >
           <motion.div
@@ -157,7 +149,7 @@ export default function SplashView() {
           className="text-gray-600 text-xs mt-10 uppercase tracking-widest"
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 0.5, 0] }}
-          transition={{ delay: 3.5, duration: 3, repeat: Infinity }}
+          transition={{ delay: 3, duration: 3, repeat: Infinity }}
         >
           tap anywhere to begin
         </motion.p>

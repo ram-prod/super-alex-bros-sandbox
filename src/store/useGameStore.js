@@ -130,11 +130,8 @@ const useGameStore = create((set, get) => ({
     set((state) => {
       const alive = state.players.filter((p) => !p.isEliminated);
       if (alive.length < 2) {
-        return {
-          gamePhase: 'victory',
-          matchWinner: alive[0] || null,
-          currentMatch: { player1: alive[0] || null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null },
-        };
+        // Tournament is over — stay in victory, only allow reset
+        return {};
       }
       return {
         gamePhase: 'map_select',
