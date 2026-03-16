@@ -158,7 +158,7 @@ function WildcardRoulette({ candidates, players, onComplete }) {
                   </motion.div>
                 ))}
               </div>
-              <motion.button onClick={onComplete}
+              <motion.button onClick={() => onComplete(revealed.map((p) => p.id))}
                 className="group mt-6"
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 }}
                 whileHover={{ scale: 1.05 }}

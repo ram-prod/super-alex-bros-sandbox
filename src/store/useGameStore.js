@@ -380,15 +380,14 @@ const useGameStore = create(
   // WILDCARD ROULETTE
   // Resolves ALL placeholders: W_Prelims_*, WC_*, VIP_*
   // ============================================
-  executeWildcards: () =>
+  executeWildcards: (revealedIds) =>
     set((state) => {
       const { wildcardCandidates, vipPlayerId, players, knockoutRounds, bracketConfig } = state;
       if (!bracketConfig) return {};
 
-      // Pick wildcards from prelim losers
-      const shuffledLosers = shuffle([...wildcardCandidates]);
-      const selected = shuffledLosers.slice(0, bracketConfig.wildcards);
-      const eliminated = shuffledLosers.slice(bracketConfig.wildcards);
+      // Use the exact IDs shown in the roulette UI
+      const selected = revealedIds || shuffle([...wildcardCandidates]).slice(0, bracketConfig.wildcards);
+      const eliminated = wildcardCandidates.filter((id) => !selected.includes(id));
 
       // Eliminate the rest
       const updatedPlayers = players.map((p) =>
