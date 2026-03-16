@@ -42,7 +42,11 @@ export default function VictoryView() {
       // Tournament end — extended sequence with SIKE
       timers.push(setTimeout(() => setAnimStep(1), 3000));
       timers.push(setTimeout(() => setAnimStep(2), 6500));
-      timers.push(setTimeout(() => setAnimStep(3), 11000)); // SIKE at 11s
+      timers.push(setTimeout(() => {
+        setAnimStep(3);
+        useGameStore.getState().playSFX('sike');
+        useGameStore.getState().playSFX('smash');
+      }, 11000)); // SIKE at 11s
       timers.push(setTimeout(() => setAnimStep(4), 13500)); // Alexander reveal at 13.5s
     }
     return () => timers.forEach(clearTimeout);
