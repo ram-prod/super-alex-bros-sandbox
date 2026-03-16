@@ -280,43 +280,51 @@ const useGameStore = create((set, get) => ({
         return { isTournamentOver: true, tournamentWinner: winner };
       }
 
-      // --- Standard advance: fill winners into next round ---
+      // --- Standard advance: stage transition only (slotting already done in awardDamage) ---
       const nextRoundIdx = currentRoundIdx + 1;
       if (nextRoundIdx >= knockoutRounds.length) return {};
-
-      const updatedRounds = knockoutRounds.map((r, i) => {
-        if (i !== nextRoundIdx) return r;
-
-        const nextMatches = r.matches.map((m) => ({ ...m }));
-
-        // Queue-based slot filling: winners fill empty slots left-to-right
-        const winnersQueue = [...winnerIds];
-        nextMatches.forEach((m) => {
-          if (m.p1Id === null && winnersQueue.length > 0) m.p1Id = winnersQueue.shift();
-          if (m.p2Id === null && winnersQueue.length > 0) m.p2Id = winnersQueue.shift();
-        });
-
-        return { ...r, matches: nextMatches };
-      });
 
       // Eliminate losers
       const updatedPlayers = players.map((p) =>
         loserIds.includes(p.id) ? { ...p, isEliminated: true } : p
       );
 
-      // Determine next stage
-      const nextRoundName = updatedRounds[nextRoundIdx].round;
-      const nextStage = nextRoundName.toLowerCase(); // 'qf' | 'sf' | 'final'
+      // For prelims without wildcards, use queue to fill base round
+      if (bracketStage === 'prelims' && bracketConfig.wildcards === 0) {
+        const updatedRounds = knockoutRounds.map((r, i) => {
+          if (i !== nextRoundIdx) return r;
+          const nextMatches = r.matches.map((m2) => ({ ...m2 }));
+          const winnersQueue = [...winnerIds];
+          nextMatches.forEach((m2) => {
+            if (m2.p1Id === null && winnersQueue.length > 0) m2.p1Id = winnersQueue.shift();
+            if (m2.p2Id === null && winnersQueue.length > 0) m2.p2Id = winnersQueue.shift();
+          });
+          return { ...r, matches: nextMatches };
+        });
+        const nextRoundName = updatedRounds[nextRoundIdx].round;
+        const nextPending = updatedRounds[nextRoundIdx].matches
+          .filter((m2) => m2.p1Id && m2.p2Id && !m2.completed)
+          .map((m2) => ({ ...m2 }));
+        return {
+          players: updatedPlayers,
+          bracketStage: nextRoundName.toLowerCase(),
+          knockoutRounds: updatedRounds,
+          pendingMatches: nextPending,
+          gamePhase: 'tournament_overview',
+        };
+      }
 
-      // Pending = next round's matches that have both players filled
-      const nextPending = updatedRounds[nextRoundIdx].matches
-        .filter((m) => m.p1Id && m.p2Id && !m.completed)
-        .map((m) => ({ ...m }));
+      // QF/SF: winners already slotted by awardDamage
+      const nextRoundName = knockoutRounds[nextRoundIdx].round;
+      const nextStage = nextRoundName.toLowerCase();
+      const nextPending = knockoutRounds[nextRoundIdx].matches
+        .filter((m2) => m2.p1Id && m2.p2Id && !m2.completed)
+        .map((m2) => ({ ...m2 }));
 
       return {
         players: updatedPlayers,
         bracketStage: nextStage,
-        knockoutRounds: updatedRounds,
+        knockoutRounds,
         pendingMatches: nextPending,
         gamePhase: 'tournament_overview',
       };
@@ -444,6 +452,26 @@ const useGameStore = create((set, get) => ({
         if (p.id === loserId) return { ...p, losses: p.losses + 1 };
         return p;
       });
+
+      // Immediate winner slotting into next round (skip for prelims — wildcards handle that)
+      if (state.bracketStage !== 'prelims') {
+        const stageMap = { qf: 'QF', sf: 'SF', final: 'Final' };
+        const currentRoundName = stageMap[state.bracketStage];
+        const currentRoundIdx = knockoutRounds.findIndex((r) => r.round === currentRoundName);
+        if (currentRoundIdx !== -1) {
+          const currentMatchIdx = knockoutRounds[currentRoundIdx].matches.findIndex(
+            (rm) => rm.p1Id === m.player1.id && rm.p2Id === m.player2.id
+          );
+          const nextRound = knockoutRounds[currentRoundIdx + 1];
+          if (nextRound && currentMatchIdx !== -1) {
+            const targetMatchIdx = Math.floor(currentMatchIdx / 2);
+            const targetSlot = currentMatchIdx % 2 === 0 ? 'p1Id' : 'p2Id';
+            if (nextRound.matches[targetMatchIdx]) {
+              nextRound.matches[targetMatchIdx][targetSlot] = winner.id;
+            }
+          }
+        }
+      }
 
       return {
         currentMatch: newMatch,

@@ -8,18 +8,13 @@ const FIGHTER_EMOJI = {
   frederik: '🛡️', vincent: '💎', devan: '🌀', gereon: '⚔️', noah: '🌩️', alexander: '👑',
 };
 
-const FIGHTER_COLORS = {
-  ruggero: '#ff4444', koen: '#44aaff', matthew: '#44ff88', martin: '#ff8844', robin: '#aa44ff',
-  frederik: '#ffdd44', vincent: '#ff44aa', devan: '#44ffdd', gereon: '#8888ff', noah: '#ff6666', alexander: '#ffd700',
-};
+const ROUND_HEADERS = { Prelims: '🥊 PRELIMS', QF: '⚔️ QUARTER-FINALS', SF: '🔥 SEMI-FINALS', Final: '👑 GRAND FINAL' };
 
-const ROUND_HEADERS = { Prelims: '🥊 PRELIMS', QF: '⚔️ QF', SF: '🔥 SF', Final: '👑 FINAL' };
-
-// --- Compact player row inside a match card ---
+// --- Compact player row ---
 function PlayerSlot({ player, isWinner, isVip, isWildcard }) {
   if (!player) return (
     <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-800/30 border border-dashed border-gray-700/30">
-      <span className="text-xs text-gray-600">TBD</span>
+      <span className="text-xs text-gray-600 italic">TBD</span>
     </div>
   );
   const charId = player.chosenCharacter;
@@ -67,35 +62,6 @@ function VipBadge({ player }) {
       <div className="text-lg">{emoji}</div>
       <div className="text-[10px] font-bold text-yellow-300 truncate">{player.name}</div>
       <div className="text-[8px] text-yellow-500/50 font-mono">VIP BYE</div>
-    </div>
-  );
-}
-
-// Connective lines between rounds
-function BracketConnector({ matchCount, nextMatchCount }) {
-  if (!nextMatchCount || nextMatchCount === 0) return null;
-
-  return (
-    <div className="flex flex-col justify-around w-6 sm:w-8 shrink-0 relative">
-      {Array.from({ length: nextMatchCount }, (_, i) => {
-        // Each connector groups 2 source matches into 1 target
-        const topPct = ((i * 2) + 0.5) / matchCount * 100;
-        const botPct = ((i * 2 + 1) + 0.5) / matchCount * 100;
-        const midPct = (topPct + botPct) / 2;
-
-        return (
-          <div key={i} className="absolute left-0 right-0" style={{ top: `${topPct}%`, height: `${botPct - topPct}%` }}>
-            {/* Vertical line */}
-            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-600/40" />
-            {/* Top horizontal */}
-            <div className="absolute left-0 top-0 h-px w-1/2 bg-gray-600/40" />
-            {/* Bottom horizontal */}
-            <div className="absolute left-0 bottom-0 h-px w-1/2 bg-gray-600/40" />
-            {/* Mid horizontal to next */}
-            <div className="absolute right-0 h-px w-1/2 bg-gray-600/40" style={{ top: '50%' }} />
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -218,10 +184,12 @@ function WildcardRoulette({ candidates, players, onComplete }) {
 // =============================================
 export default function TournamentBracketView() {
   const {
-    players, knockoutRounds, pendingMatches, bracketStage,
+    players, knockoutRounds, pendingMatches, completedMatches, bracketStage,
     vipPlayerIds, wildcardCandidates, selectedWildcards,
     isTournamentOver, generateTournament, advanceTournament, executeWildcards,
   } = useGameStore();
+
+  const hasStarted = completedMatches.length > 0;
 
   // Generate tournament on first mount
   useEffect(() => {
@@ -230,7 +198,7 @@ export default function TournamentBracketView() {
     }
   }, []);
 
-  // Auto-advance: check the ACTIVE round, not the last one
+  // Auto-advance: check the ACTIVE round
   useEffect(() => {
     if (bracketStage === 'wildcards') return;
     const stageToRound = { prelims: 'Prelims', qf: 'QF', sf: 'SF', final: 'Final' };
@@ -246,9 +214,22 @@ export default function TournamentBracketView() {
   const nextP1 = nextMatch ? players.find((p) => p.id === nextMatch.p1Id) : null;
   const nextP2 = nextMatch ? players.find((p) => p.id === nextMatch.p2Id) : null;
 
-  // Active round name for highlighting
   const stageToRound = { prelims: 'Prelims', qf: 'QF', sf: 'SF', final: 'Final' };
   const activeRoundName = stageToRound[bracketStage];
+
+  // Handle proceed — Final goes to villa directly
+  const handleProceed = () => {
+    if (nextMatch?.isFinal) {
+      useGameStore.setState({
+        selectedMap: 'villa',
+        gamePhase: 'vs_screen',
+        currentMatch: { player1: nextP1, player2: nextP2, p1Damage: 0, p2Damage: 0, activeQuestion: null, isFinal: true },
+        matchWinner: null,
+      });
+    } else {
+      useGameStore.setState({ gamePhase: 'map_select' });
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden flex flex-col">
@@ -260,12 +241,12 @@ export default function TournamentBracketView() {
 
       {/* Header */}
       <div className="relative z-10 px-3 pt-3 pb-1 flex items-center justify-between">
-        <BackButton />
+        {!hasStarted ? <BackButton /> : <div className="w-16" />}
         <div className="text-center">
-          <h2 className="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 uppercase tracking-wider">
+          <h2 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 uppercase tracking-wider">
             {ROUND_HEADERS[activeRoundName] || 'TOURNAMENT'}
           </h2>
-          <p className="text-gray-600 text-[9px] font-mono uppercase tracking-widest">
+          <p className="text-gray-600 text-[10px] font-mono uppercase tracking-widest mt-1">
             Bachelor&apos;s Knockout
           </p>
         </div>
@@ -277,10 +258,10 @@ export default function TournamentBracketView() {
         <WildcardRoulette candidates={wildcardCandidates} players={players} onComplete={executeWildcards} />
       )}
 
-      {/* Bracket grid — single screen, no scroll */}
+      {/* Bracket grid — single screen, centered */}
       {bracketStage !== 'wildcards' && (
         <div className="relative z-10 flex-1 flex items-center justify-center px-2 sm:px-4 pb-24 overflow-hidden">
-          <div className="flex items-center h-full max-h-[70vh] w-full max-w-5xl">
+          <div className="flex items-center justify-center h-full w-full max-w-6xl mx-auto">
             {knockoutRounds.map((round, roundIdx) => {
               const nextRound = knockoutRounds[roundIdx + 1];
               const isActiveRound = round.round === activeRoundName;
@@ -321,9 +302,17 @@ export default function TournamentBracketView() {
                     </div>
                   </div>
 
-                  {/* Connector lines to next round */}
-                  {nextRound && round.matches.length > 1 && (
-                    <BracketConnector matchCount={round.matches.length} nextMatchCount={nextRound.matches.length} />
+                  {/* Arrow separator */}
+                  {nextRound && (
+                    <div className="flex items-center justify-center px-2 sm:px-4">
+                      <motion.span
+                        className="text-3xl sm:text-4xl text-yellow-500/40"
+                        animate={{ opacity: [0.3, 0.7, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        ➔
+                      </motion.span>
+                    </div>
                   )}
                 </div>
               );
@@ -339,14 +328,14 @@ export default function TournamentBracketView() {
           <div className="bg-gradient-to-t from-black via-black/95 to-transparent pt-6 pb-4 px-4">
             <div className="max-w-md mx-auto">
               <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-base">{FIGHTER_EMOJI[nextP1?.chosenCharacter] || '❓'}</span>
-                <span className="text-xs font-bold text-white">{nextP1?.name}</span>
-                <span className="text-yellow-500 font-black text-[10px]">VS</span>
-                <span className="text-xs font-bold text-white">{nextP2?.name}</span>
-                <span className="text-base">{FIGHTER_EMOJI[nextP2?.chosenCharacter] || '❓'}</span>
+                <span className="text-lg">{FIGHTER_EMOJI[nextP1?.chosenCharacter] || '❓'}</span>
+                <span className="text-sm font-bold text-white">{nextP1?.name}</span>
+                <span className="text-yellow-500 font-black text-xs">VS</span>
+                <span className="text-sm font-bold text-white">{nextP2?.name}</span>
+                <span className="text-lg">{FIGHTER_EMOJI[nextP2?.chosenCharacter] || '❓'}</span>
               </div>
               <motion.button
-                onClick={() => useGameStore.setState({ gamePhase: 'map_select' })}
+                onClick={handleProceed}
                 className="w-full py-3 rounded-xl font-black text-sm uppercase tracking-wider
                   bg-gradient-to-r from-yellow-500 to-orange-500 text-black
                   border-2 border-yellow-400/50"
@@ -355,7 +344,7 @@ export default function TournamentBracketView() {
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                ⚔️ PROCEED TO ARENA
+                {nextMatch?.isFinal ? '👑 ENTER FINAL DESTINATION' : '⚔️ PROCEED TO ARENA'}
               </motion.button>
             </div>
           </div>
