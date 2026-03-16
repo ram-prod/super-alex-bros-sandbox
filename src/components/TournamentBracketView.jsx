@@ -241,7 +241,7 @@ export default function TournamentBracketView() {
 
       {/* Header */}
       <div className="relative z-10 px-3 pt-3 pb-1 flex items-center justify-between">
-        {!hasStarted ? <BackButton /> : <div className="w-16" />}
+        {!hasStarted ? <BackButton onClick={() => useGameStore.getState().goBack()} /> : <div className="w-16" />}
         <div className="text-center">
           <h2 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 uppercase tracking-wider">
             {ROUND_HEADERS[activeRoundName] || 'TOURNAMENT'}
@@ -345,6 +345,27 @@ export default function TournamentBracketView() {
                 transition={{ duration: 2, repeat: Infinity }}
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 {nextMatch?.isFinal ? '👑 ENTER FINAL DESTINATION' : '⚔️ PROCEED TO ARENA'}
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Tournament complete — reveal champion */}
+      {isTournamentOver && (
+        <motion.div className="fixed bottom-0 left-0 right-0 z-40"
+          initial={{ y: 80 }} animate={{ y: 0 }}>
+          <div className="bg-gradient-to-t from-black via-black/95 to-transparent pt-6 pb-6 px-4">
+            <div className="max-w-md mx-auto text-center bg-gray-900/80 border border-yellow-500/50 rounded-2xl p-5 shadow-[0_0_40px_rgba(250,204,21,0.2)]">
+              <h3 className="text-2xl font-black text-yellow-400 mb-1">🏆 TOURNAMENT COMPLETE!</h3>
+              <p className="text-gray-400 text-xs uppercase tracking-widest font-mono mb-4">All matches have been played</p>
+              <motion.button
+                onClick={() => useGameStore.setState({ gamePhase: 'victory' })}
+                className="w-full py-3 rounded-xl font-black text-lg uppercase tracking-wider
+                  bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-black border-2 border-yellow-300/50"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}>
+                👑 REVEAL CHAMPION
               </motion.button>
             </div>
           </div>

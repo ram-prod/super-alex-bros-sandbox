@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import gameData from '../data/gamedata.json';
 
 // --- helpers ---
@@ -72,7 +73,9 @@ const roundsFrom = (base) => {
   return ROUND_ORDER.slice(idx);
 };
 
-const useGameStore = create((set, get) => ({
+const useGameStore = create(
+  persist(
+    (set, get) => ({
   // --- state ---
   gamePhase: 'splash',
   tournamentSize: 11,
@@ -462,13 +465,16 @@ const useGameStore = create((set, get) => ({
           const currentMatchIdx = knockoutRounds[currentRoundIdx].matches.findIndex(
             (rm) => rm.p1Id === m.player1.id && rm.p2Id === m.player2.id
           );
-          const nextRound = knockoutRounds[currentRoundIdx + 1];
-          if (nextRound && currentMatchIdx !== -1) {
+          const nextRoundIdx = currentRoundIdx + 1;
+          if (knockoutRounds[nextRoundIdx] && currentMatchIdx !== -1) {
             const targetMatchIdx = Math.floor(currentMatchIdx / 2);
             const targetSlot = currentMatchIdx % 2 === 0 ? 'p1Id' : 'p2Id';
-            if (nextRound.matches[targetMatchIdx]) {
-              nextRound.matches[targetMatchIdx][targetSlot] = winner.id;
-            }
+            // Deep clone to ensure React state update
+            const nextRound = { ...knockoutRounds[nextRoundIdx] };
+            const nextMatches = [...nextRound.matches];
+            nextMatches[targetMatchIdx] = { ...nextMatches[targetMatchIdx], [targetSlot]: winner.id };
+            nextRound.matches = nextMatches;
+            knockoutRounds[nextRoundIdx] = nextRound;
           }
         }
       }
@@ -536,6 +542,17 @@ const useGameStore = create((set, get) => ({
       bgmState: 'paused',
       currentTrack: 'theme',
     })),
-}));
+  }),
+  {
+    name: 'super-alex-bros-storage',
+    partialize: (state) =>
+      Object.fromEntries(
+        Object.entries(state).filter(
+          ([key]) => !['bgmState', 'isMusicPlaying'].includes(key)
+        )
+      ),
+  }
+  )
+);
 
 export default useGameStore;
