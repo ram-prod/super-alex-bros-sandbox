@@ -42,7 +42,7 @@ function PlayerSlot({ player, placeholder, isWinner, isVip, isWildcard }) {
   );
 }
 
-function MatchCard({ match, players, vipPlayerIds, selectedWildcards, isActive }) {
+function MatchCard({ match, players, vipPlayerId, selectedWildcards, isActive }) {
   const p1 = typeof match.p1Id === 'number' ? players.find((p) => p.id === match.p1Id) : null;
   const p2 = typeof match.p2Id === 'number' ? players.find((p) => p.id === match.p2Id) : null;
   const p1Placeholder = typeof match.p1Id === 'string' ? match.p1Id : null;
@@ -57,10 +57,10 @@ function MatchCard({ match, players, vipPlayerIds, selectedWildcards, isActive }
         : 'border-gray-700/30 bg-gray-900/40'
     }`}>
       <PlayerSlot player={p1} placeholder={p1Placeholder} isWinner={match.completed && match.winnerId === p1?.id}
-        isVip={vipPlayerIds?.includes(p1?.id)} isWildcard={selectedWildcards?.includes(p1?.id)} />
+        isVip={p1?.id === vipPlayerId} isWildcard={selectedWildcards?.includes(p1?.id)} />
       <div className="text-center text-[8px] text-gray-600 font-bold">VS</div>
       <PlayerSlot player={p2} placeholder={p2Placeholder} isWinner={match.completed && match.winnerId === p2?.id}
-        isVip={vipPlayerIds?.includes(p2?.id)} isWildcard={selectedWildcards?.includes(p2?.id)} />
+        isVip={p2?.id === vipPlayerId} isWildcard={selectedWildcards?.includes(p2?.id)} />
     </div>
   );
 }
@@ -196,11 +196,12 @@ function WildcardRoulette({ candidates, players, onComplete }) {
 export default function TournamentBracketView() {
   const {
     players, knockoutRounds, pendingMatches, completedMatches, bracketStage,
-    vipPlayerIds, wildcardCandidates, selectedWildcards,
+    vipPlayerId, wildcardCandidates, selectedWildcards,
     isTournamentOver, generateTournament, advanceTournament, executeWildcards,
   } = useGameStore();
 
   const hasStarted = completedMatches.length > 0;
+  const [showRoulette, setShowRoulette] = useState(false);
 
   // Generate tournament on first mount
   useEffect(() => {
@@ -220,7 +221,7 @@ export default function TournamentBracketView() {
     }
   }, [pendingMatches.length, knockoutRounds, bracketStage, isTournamentOver]);
 
-  const vipPlayers = vipPlayerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean);
+  const vipPlayer = vipPlayerId ? players.find((p) => p.id === vipPlayerId) : null;
   const nextMatch = pendingMatches[0];
   const nextP1 = nextMatch ? players.find((p) => p.id === nextMatch.p1Id) : null;
   const nextP2 = nextMatch ? players.find((p) => p.id === nextMatch.p2Id) : null;
@@ -265,12 +266,12 @@ export default function TournamentBracketView() {
       </div>
 
       {/* Wildcard overlay */}
-      {bracketStage === 'wildcards' && (
+      {bracketStage === 'wildcards' && showRoulette && (
         <WildcardRoulette candidates={wildcardCandidates} players={players} onComplete={executeWildcards} />
       )}
 
       {/* Bracket grid — single screen, centered */}
-      {bracketStage !== 'wildcards' && (
+      {(
         <div className="relative z-10 flex-1 flex items-center justify-center px-2 sm:px-4 pb-24 overflow-hidden">
           <div className="flex items-center justify-center h-full w-full max-w-6xl mx-auto">
             {knockoutRounds.map((round, roundIdx) => {
@@ -292,9 +293,9 @@ export default function TournamentBracketView() {
                     </div>
 
                     {/* VIP badges in prelims column */}
-                    {round.round === 'Prelims' && vipPlayers.length > 0 && (
+                    {round.round === 'Prelims' && vipPlayer && (
                       <div className="flex gap-1 justify-center mb-2">
-                        {vipPlayers.map((vp) => <VipBadge key={vp.id} player={vp} />)}
+                        <VipBadge player={vipPlayer} />
                       </div>
                     )}
 
@@ -305,7 +306,7 @@ export default function TournamentBracketView() {
                           key={mIdx}
                           match={match}
                           players={players}
-                          vipPlayerIds={vipPlayerIds}
+                          vipPlayerId={vipPlayerId}
                           selectedWildcards={selectedWildcards}
                           isActive={isActiveRound}
                         />
@@ -333,6 +334,32 @@ export default function TournamentBracketView() {
       )}
 
       {/* Bottom action bar */}
+      {/* Wildcard draw button */}
+      {bracketStage === 'wildcards' && !showRoulette && (
+        <motion.div className="fixed bottom-0 left-0 right-0 z-30"
+          initial={{ y: 80 }} animate={{ y: 0 }} transition={{ type: 'tween', ease: 'easeOut', duration: 0.4 }}>
+          <div className="bg-gradient-to-t from-black via-black/95 to-transparent pt-6 pb-4 px-4">
+            <div className="max-w-md mx-auto text-center">
+              <p className="text-purple-300 text-xs uppercase tracking-widest font-bold mb-3">
+                🃏 {wildcardCandidates.length} fighters eliminated — wildcards must be drawn!
+              </p>
+              <motion.button
+                onClick={() => setShowRoulette(true)}
+                className="w-full py-4 rounded-xl font-black text-lg uppercase tracking-wider
+                  bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400/50"
+                animate={{
+                  boxShadow: ['0 0 15px rgba(168,85,247,0.2)', '0 0 40px rgba(168,85,247,0.4)', '0 0 15px rgba(168,85,247,0.2)'],
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
+                🎰 DRAW WILDCARDS
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Normal proceed button */}
       {bracketStage !== 'wildcards' && nextMatch && (
         <motion.div className="fixed bottom-0 left-0 right-0 z-30"
           initial={{ y: 80 }} animate={{ y: 0 }} transition={{ type: 'tween', ease: 'easeOut', duration: 0.4 }}>

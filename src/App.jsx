@@ -9,6 +9,9 @@ import VsScreenView from './components/VsScreenView';
 import BattleView from './components/BattleView';
 import VictoryView from './components/VictoryView';
 import RulesView from './components/RulesView';
+import ConfirmationView from './components/ConfirmationView';
+import VipRevealView from './components/VipRevealView';
+import VipRouletteView from './components/VipRouletteView';
 
 const views = {
   splash: SplashView,
@@ -19,6 +22,9 @@ const views = {
   battle: BattleView,
   victory: VictoryView,
   rules: RulesView,
+  confirmation: ConfirmationView,
+  vip_reveal: VipRevealView,
+  vip_roulette: VipRouletteView,
 };
 
 function App() {

@@ -34,8 +34,8 @@ const BRACKET_CONFIG = {
   2:  { base: 'Final', prelims: 0, byes: 0, wildcards: 0 },
   3:  { base: 'Final', prelims: 1, byes: 1, wildcards: 0 },
   4:  { base: 'SF',    prelims: 0, byes: 0, wildcards: 0 },
-  5:  { base: 'SF',    prelims: 1, byes: 3, wildcards: 0 },
-  6:  { base: 'SF',    prelims: 2, byes: 2, wildcards: 0 },
+  5:  { base: 'SF',    prelims: 2, byes: 1, wildcards: 1 },
+  6:  { base: 'SF',    prelims: 3, byes: 0, wildcards: 1 },
   7:  { base: 'SF',    prelims: 3, byes: 1, wildcards: 0 },
   8:  { base: 'QF',    prelims: 0, byes: 0, wildcards: 0 },
   9:  { base: 'QF',    prelims: 4, byes: 1, wildcards: 3 },
@@ -83,7 +83,7 @@ const useGameStore = create(
   knockoutRounds: [],      // [{ round, matches }] — FULL pre-generated tree with placeholders
 
   // Bachelor's 8 specifics
-  vipPlayerIds: [],        // Players with automatic byes
+  vipPlayerId: null,        // Players with automatic byes
   wildcardCandidates: [],  // Loser IDs from prelims
   selectedWildcards: [],   // Resurrected player IDs
   bracketConfig: null,     // Current BRACKET_CONFIG entry
@@ -137,8 +137,26 @@ const useGameStore = create(
   confirmRoster: () =>
     set((state) => {
       if (!state.players.every((p) => p.chosenCharacter !== null)) return {};
-      return { gamePhase: 'tournament_overview' };
+      return { gamePhase: 'confirmation' };
     }),
+
+  evaluateVipPhase: () => {
+    const state = get();
+    const config = BRACKET_CONFIG[state.players.length];
+    if (!config) return;
+    if (config.byes === 0) {
+      set({ vipPlayerId: null });
+      get().generateTournament();
+      set({ gamePhase: 'tournament_overview' });
+    } else {
+      const alex = state.players.find((p) => p.chosenCharacter === 'alexander');
+      if (alex) {
+        set({ vipPlayerId: alex.id, gamePhase: 'vip_reveal' });
+      } else {
+        set({ gamePhase: 'vip_roulette' });
+      }
+    }
+  },
 
   // ============================================
   // FIFA-STYLE PRE-DRAWN BRACKET GENERATION
@@ -150,16 +168,8 @@ const useGameStore = create(
       const config = BRACKET_CONFIG[size];
       if (!config) return {};
 
-      // --- Identify VIPs (bye players) ---
-      const alex = players.find((p) => p.chosenCharacter === 'alexander');
-      const vipIds = [];
-      if (config.byes > 0) {
-        if (alex) vipIds.push(alex.id);
-        const nonAlexIds = shuffle(players.filter((p) => p.id !== alex?.id).map((p) => p.id));
-        while (vipIds.length < config.byes) {
-          vipIds.push(nonAlexIds.shift());
-        }
-      }
+      // --- VIP (max 1, already set by evaluateVipPhase) ---
+      const vipIds = state.vipPlayerId ? [state.vipPlayerId] : [];
 
       // --- Fighters = everyone not a VIP ---
       const fighterIds = shuffle(players.filter((p) => !vipIds.includes(p.id)).map((p) => p.id));
@@ -259,7 +269,7 @@ const useGameStore = create(
 
       return {
         bracketConfig: config,
-        vipPlayerIds: vipIds,
+        // vipPlayerId already set by evaluateVipPhase
         bracketStage: firstStage,
         knockoutRounds: rounds,
         pendingMatches: pending.map((m) => ({ ...m })),
@@ -321,7 +331,7 @@ const useGameStore = create(
 
       // --- For prelims without wildcards, also resolve VIP placeholders ---
       if (bracketStage === 'prelims' && bracketConfig.wildcards === 0) {
-        state.vipPlayerIds.forEach((vipId, i) => {
+        (state.vipPlayerId ? [state.vipPlayerId] : []).forEach((vipId, i) => {
           updatedRounds = replacePlaceholder(updatedRounds, `VIP_${i}`, vipId);
         });
       }
@@ -356,7 +366,7 @@ const useGameStore = create(
   // ============================================
   executeWildcards: () =>
     set((state) => {
-      const { wildcardCandidates, vipPlayerIds, players, knockoutRounds, bracketConfig } = state;
+      const { wildcardCandidates, vipPlayerId, players, knockoutRounds, bracketConfig } = state;
       if (!bracketConfig) return {};
 
       // Pick wildcards from prelim losers
@@ -392,7 +402,7 @@ const useGameStore = create(
       });
 
       // Replace VIP_* with actual VIP player IDs
-      vipPlayerIds.forEach((vipId, i) => {
+      (vipPlayerId ? [vipPlayerId] : []).forEach((vipId, i) => {
         updatedRounds = replacePlaceholder(updatedRounds, `VIP_${i}`, vipId);
       });
 
@@ -550,12 +560,14 @@ const useGameStore = create(
   goBack: () =>
     set((state) => {
       if (state.gamePhase === 'map_select') return { gamePhase: 'tournament_overview' };
+      if (state.gamePhase === 'confirmation') return { gamePhase: 'roster_select' };
+      if (state.gamePhase === 'vip_reveal' || state.gamePhase === 'vip_roulette') return { gamePhase: 'confirmation' };
       if (state.gamePhase === 'tournament_overview') return {
         gamePhase: 'roster_select',
         knockoutRounds: [],
         pendingMatches: [],
         completedMatches: [],
-        vipPlayerIds: [],
+        vipPlayerId: null,
         wildcardCandidates: [],
         selectedWildcards: [],
         bracketConfig: null,
@@ -574,7 +586,7 @@ const useGameStore = create(
       pendingMatches: [],
       completedMatches: [],
       knockoutRounds: [],
-      vipPlayerIds: [],
+      vipPlayerId: null,
       wildcardCandidates: [],
       selectedWildcards: [],
       bracketConfig: null,
