@@ -110,6 +110,8 @@ const useGameStore = create(
   // Data
   characters: gameData.characters,
   maps: gameData.maps,
+  questions: gameData.content || [],
+  askedQuestionIds: [],
 
   // --- actions ---
   setTournamentSize: (size) => {
@@ -431,9 +433,24 @@ const useGameStore = create(
     }),
 
   startBattle: () => {
-    const { currentMatch, setBgmState } = get();
+    const { currentMatch, setBgmState, questions, askedQuestionIds } = get();
     const track = currentMatch.isFinal ? 'final_game' : 'regular_game';
-    set({ gamePhase: 'battle' });
+
+    // Select random unasked question
+    let availableQuestions = questions.filter((q) => !askedQuestionIds.includes(q.id));
+    if (availableQuestions.length === 0 && questions.length > 0) {
+      availableQuestions = questions;
+      set({ askedQuestionIds: [] });
+    }
+    const randomQ = availableQuestions.length > 0
+      ? availableQuestions[Math.floor(Math.random() * availableQuestions.length)]
+      : null;
+
+    set((state) => ({
+      gamePhase: 'battle',
+      currentMatch: { ...currentMatch, activeQuestion: randomQ },
+      askedQuestionIds: randomQ ? [...state.askedQuestionIds, randomQ.id] : state.askedQuestionIds,
+    }));
     setBgmState('playing', track);
   },
 
@@ -566,6 +583,7 @@ const useGameStore = create(
       matchWinner: null,
       tournamentWinner: null,
       isTournamentOver: false,
+      askedQuestionIds: [],
       bgmState: 'paused',
       currentTrack: 'theme',
     })),

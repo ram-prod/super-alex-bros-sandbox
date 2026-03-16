@@ -207,6 +207,7 @@ export default function BattleView() {
   const [throwFrom, setThrowFrom] = useState(null);
   const [hitSide, setHitSide] = useState(null);
   const [pendingLoserId, setPendingLoserId] = useState(null);
+  const [showAnswer, setShowAnswer] = useState(false);
 
   // Intro sequence
   useEffect(() => {
@@ -256,6 +257,7 @@ export default function BattleView() {
       const phase = useGameStore.getState().gamePhase;
       if (phase === 'battle') {
         setBattleState('idle_question');
+        setShowAnswer(false);
         setThrowFrom(null);
         setHitSide(null);
         setPendingLoserId(null);
@@ -357,16 +359,37 @@ export default function BattleView() {
             exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
             transition={{ duration: 0.4 }}>
             {/* Question area */}
-            <div className="w-full max-w-lg bg-gray-900/70 backdrop-blur-md border border-gray-700/50 rounded-2xl p-6 sm:p-8 text-center mb-6">
-              <motion.h2 className="text-2xl sm:text-3xl font-black mb-3"
-                animate={{ color: ['#facc15', '#f97316', '#ef4444', '#f97316', '#facc15'] }}
-                transition={{ duration: 4, repeat: Infinity }}>
-                BATTLE ON!
-              </motion.h2>
-              <div className="text-gray-500 text-sm border border-dashed border-gray-700 rounded-lg p-4">
-                <p className="text-gray-400 mb-1">🎮 Question / Minigame Area</p>
-                <p className="text-xs">Content will appear here during rounds</p>
+            <div className="w-full max-w-2xl bg-gray-900/80 backdrop-blur-md border-2 border-yellow-500/30 rounded-2xl p-6 sm:p-8 text-center mb-6 shadow-[0_0_30px_rgba(250,204,21,0.15)]">
+              <div className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-4">
+                {currentMatch.activeQuestion?.type === 'trivia' ? '🧠 TRIVIA TIME' : '⚡ MINIGAME CHALLENGE'}
               </div>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-snug mb-6">
+                {currentMatch.activeQuestion?.question || 'Are you ready?'}
+              </h3>
+              {currentMatch.activeQuestion?.answer && (
+                <div className="mt-6">
+                  {!showAnswer ? (
+                    <motion.button
+                      onClick={() => setShowAnswer(true)}
+                      className="px-6 py-2 rounded-lg bg-gray-800 border border-gray-600 text-gray-300 font-bold uppercase tracking-wider text-sm hover:bg-gray-700 transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      👁️ Reveal Answer
+                    </motion.button>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-4 rounded-xl bg-green-500/20 border border-green-500/50"
+                    >
+                      <span className="text-green-400 font-black text-xl sm:text-2xl uppercase tracking-wide">
+                        {currentMatch.activeQuestion.answer}
+                      </span>
+                    </motion.div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Admin damage buttons */}
