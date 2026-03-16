@@ -295,19 +295,26 @@ export default function BattleView() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowExitModal(false)} />
             <motion.div
-              className="relative z-10 bg-black/95 border-4 border-red-500/80 rounded-none p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)]"
-              style={{ transform: 'skewX(-2deg)' }}
+              className="relative z-10 panel-smash border-red-500/80 p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)]"
               initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 }}>
-              <h3 className="text-3xl font-black text-red-500 mb-2 uppercase">⚠️ End Tournament?</h3>
-              <p className="text-gray-300 text-lg mb-8 uppercase">Are you sure? All progress will be lost.</p>
-              <div className="flex gap-3">
-                <motion.button onClick={() => setShowExitModal(false)}
-                  className="flex-1 py-3 rounded-xl font-bold text-sm uppercase tracking-wider text-gray-300 border border-gray-600 hover:border-gray-400 transition-colors"
-                  style={{ transform: 'skewX(-5deg)' }} whileTap={{ scale: 0.95 }}>Cancel</motion.button>
-                <motion.button onClick={() => useGameStore.getState().resetGame()}
-                  className="flex-1 py-3 rounded-xl font-black text-sm uppercase tracking-wider bg-red-600 text-white border-2 border-red-500/50 hover:bg-red-500 transition-colors"
-                  style={{ transform: 'skewX(-5deg)' }} whileTap={{ scale: 0.95 }}>End Tournament</motion.button>
+              <div className="panel-smash-content">
+                <h3 className="text-smash text-3xl text-red-500 mb-2">⚠️ End Tournament?</h3>
+                <p className="text-gray-300 text-lg mb-8 uppercase">Are you sure? All progress will be lost.</p>
+                <div className="flex gap-3">
+                  <motion.button onClick={() => setShowExitModal(false)} className="group flex-1" whileTap={{ scale: 0.95 }}>
+                    <div className="py-3 border-2 border-gray-600 rounded-sm hover:border-gray-400 transition-colors"
+                      style={{ transform: 'skewX(-5deg)' }}>
+                      <div style={{ transform: 'skewX(5deg)' }} className="text-smash text-sm text-gray-300">Cancel</div>
+                    </div>
+                  </motion.button>
+                  <motion.button onClick={() => useGameStore.getState().resetGame()} className="group flex-1" whileTap={{ scale: 0.95 }}>
+                    <div className="py-3 border-2 border-red-500/50 bg-red-600 rounded-sm hover:bg-red-500 transition-colors"
+                      style={{ transform: 'skewX(-5deg)' }}>
+                      <div style={{ transform: 'skewX(5deg)' }} className="text-smash text-sm text-white">End Tournament</div>
+                    </div>
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -414,11 +421,16 @@ export default function BattleView() {
                   {!showAnswer ? (
                     <motion.button
                       onClick={() => setShowAnswer(true)}
-                      className="px-6 py-2 rounded-lg bg-gray-800 border border-gray-600 text-gray-300 font-bold uppercase tracking-wider text-sm hover:bg-gray-700 transition-colors"
+                      className="group"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      👁️ Reveal Answer
+                      <div className="px-6 py-2 border-2 border-gray-600 bg-gray-800/80 rounded-sm group-hover:border-gray-400 group-hover:bg-gray-700/80 transition-all duration-200"
+                        style={{ transform: 'skewX(-10deg)' }}>
+                        <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-sm text-gray-300">
+                          👁️ Reveal Answer
+                        </div>
+                      </div>
                     </motion.button>
                   ) : (
                     <motion.div
@@ -447,30 +459,40 @@ export default function BattleView() {
                   <div className="flex gap-3 justify-center">
                     <motion.button
                       onClick={() => handleDamageAttack(player2.id)}
-                      className="flex-1 max-w-[280px] py-4 px-4 rounded-xl text-white border-2 flex flex-col items-center transition-all duration-200"
-                      style={{
-                        backgroundColor: p1Color,
-                        borderColor: p1Color,
-                        boxShadow: `0 0 20px ${p1Color}40`,
-                      }}
-                      whileHover={{ scale: 1.03, boxShadow: `0 0 35px ${p1Color}60` }}
+                      className="group flex-1 max-w-[280px]"
+                      whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.95 }}>
-                      <span className="text-lg sm:text-xl font-black">🏆 {player1?.name} WINS!</span>
-                      <span className="text-xs sm:text-sm opacity-80 mt-1 block">+100% DMG to {player2?.name}</span>
+                      <div className="py-4 px-4 border-2 rounded-sm flex flex-col items-center transition-all duration-200"
+                        style={{
+                          backgroundColor: `${p1Color}20`,
+                          borderColor: p1Color,
+                          boxShadow: `0 0 20px ${p1Color}40`,
+                          transform: 'skewX(-5deg)',
+                        }}>
+                        <div style={{ transform: 'skewX(5deg)' }} className="text-center">
+                          <span className="text-smash text-lg sm:text-xl text-white block">🏆 {player1?.name} WINS!</span>
+                          <span className="text-xs sm:text-sm opacity-80 mt-1 block text-white">+100% DMG to {player2?.name}</span>
+                        </div>
+                      </div>
                     </motion.button>
 
                     <motion.button
                       onClick={() => handleDamageAttack(player1.id)}
-                      className="flex-1 max-w-[280px] py-4 px-4 rounded-xl text-white border-2 flex flex-col items-center transition-all duration-200"
-                      style={{
-                        backgroundColor: p2Color,
-                        borderColor: p2Color,
-                        boxShadow: `0 0 20px ${p2Color}40`,
-                      }}
-                      whileHover={{ scale: 1.03, boxShadow: `0 0 35px ${p2Color}60` }}
+                      className="group flex-1 max-w-[280px]"
+                      whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.95 }}>
-                      <span className="text-lg sm:text-xl font-black">🏆 {player2?.name} WINS!</span>
-                      <span className="text-xs sm:text-sm opacity-80 mt-1 block">+100% DMG to {player1?.name}</span>
+                      <div className="py-4 px-4 border-2 rounded-sm flex flex-col items-center transition-all duration-200"
+                        style={{
+                          backgroundColor: `${p2Color}20`,
+                          borderColor: p2Color,
+                          boxShadow: `0 0 20px ${p2Color}40`,
+                          transform: 'skewX(-5deg)',
+                        }}>
+                        <div style={{ transform: 'skewX(5deg)' }} className="text-center">
+                          <span className="text-smash text-lg sm:text-xl text-white block">🏆 {player2?.name} WINS!</span>
+                          <span className="text-xs sm:text-sm opacity-80 mt-1 block text-white">+100% DMG to {player1?.name}</span>
+                        </div>
+                      </div>
                     </motion.button>
                   </div>
                 );

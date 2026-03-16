@@ -262,27 +262,32 @@ export default function TournamentBracketView() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowExitModal(false)} />
             <motion.div
-              className="relative z-10 bg-black/95 border-4 border-red-500/80 rounded-none p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)]"
-              style={{ transform: 'skewX(-2deg)' }}
+              className="relative z-10 panel-smash border-red-500/80 p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)]"
               initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 }}>
-              <h3 className="text-3xl font-black text-red-500 mb-2 uppercase">⚠️ End Tournament?</h3>
-              <p className="text-gray-300 text-lg mb-8 uppercase">Are you sure? All progress will be lost.</p>
-              <div className="flex gap-3">
-                <motion.button
-                  onClick={() => setShowExitModal(false)}
-                  className="flex-1 py-3 rounded-xl font-bold text-sm uppercase tracking-wider text-gray-300 border border-gray-600 hover:border-gray-400 transition-colors"
-                  style={{ transform: 'skewX(-5deg)' }}
-                  whileTap={{ scale: 0.95 }}>
-                  Cancel
-                </motion.button>
-                <motion.button
-                  onClick={() => useGameStore.getState().resetGame()}
-                  className="flex-1 py-3 rounded-xl font-black text-sm uppercase tracking-wider bg-red-600 text-white border-2 border-red-500/50 hover:bg-red-500 transition-colors"
-                  style={{ transform: 'skewX(-5deg)' }}
-                  whileTap={{ scale: 0.95 }}>
-                  End Tournament
-                </motion.button>
+              <div className="panel-smash-content">
+                <h3 className="text-smash text-3xl text-red-500 mb-2">⚠️ End Tournament?</h3>
+                <p className="text-gray-300 text-lg mb-8 uppercase">Are you sure? All progress will be lost.</p>
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={() => setShowExitModal(false)}
+                    className="group flex-1"
+                    whileTap={{ scale: 0.95 }}>
+                    <div className="py-3 border-2 border-gray-600 rounded-sm hover:border-gray-400 transition-colors"
+                      style={{ transform: 'skewX(-5deg)' }}>
+                      <div style={{ transform: 'skewX(5deg)' }} className="text-smash text-sm text-gray-300">Cancel</div>
+                    </div>
+                  </motion.button>
+                  <motion.button
+                    onClick={() => useGameStore.getState().resetGame()}
+                    className="group flex-1"
+                    whileTap={{ scale: 0.95 }}>
+                    <div className="py-3 border-2 border-red-500/50 bg-red-600 rounded-sm hover:bg-red-500 transition-colors"
+                      style={{ transform: 'skewX(-5deg)' }}>
+                      <div style={{ transform: 'skewX(5deg)' }} className="text-smash text-sm text-white">End Tournament</div>
+                    </div>
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -394,14 +399,16 @@ export default function TournamentBracketView() {
               </p>
               <motion.button
                 onClick={() => setShowRoulette(true)}
-                className="w-full py-4 rounded-xl font-black text-lg uppercase tracking-wider
-                  bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400/50"
-                animate={{
-                  boxShadow: ['0 0 15px rgba(168,85,247,0.2)', '0 0 40px rgba(168,85,247,0.4)', '0 0 15px rgba(168,85,247,0.2)'],
-                }}
+                className="group w-full"
+                animate={{ scale: [1, 1.02, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
-                🎰 DRAW WILDCARDS
+                <div className="w-full py-4 border-2 border-purple-400/50 bg-purple-600/20 rounded-sm group-hover:bg-purple-500/30 group-hover:border-purple-400 group-hover:shadow-[0_0_40px_rgba(168,85,247,0.4)] transition-all duration-200"
+                  style={{ transform: 'skewX(-10deg)' }}>
+                  <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-lg text-purple-200">
+                    🎰 DRAW WILDCARDS
+                  </div>
+                </div>
               </motion.button>
             </div>
           </div>
@@ -423,15 +430,16 @@ export default function TournamentBracketView() {
               </div>
               <motion.button
                 onClick={handleProceed}
-                className="w-full py-4 rounded-xl font-black text-lg uppercase tracking-wider
-                  bg-gradient-to-r from-yellow-500 to-orange-500 text-black
-                  border-2 border-yellow-400/50"
-                animate={{
-                  boxShadow: ['0 0 10px rgba(250,204,21,0.2)', '0 0 30px rgba(250,204,21,0.4)', '0 0 10px rgba(250,204,21,0.2)'],
-                }}
+                className="group w-full"
+                animate={{ scale: [1, 1.02, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                {nextMatch?.isFinal ? '👑 ENTER FINAL DESTINATION' : '⚔️ PROCEED TO ARENA'}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
+                <div className="w-full py-4 border-2 border-yellow-400/50 bg-yellow-500/10 rounded-sm group-hover:bg-yellow-500/20 group-hover:border-yellow-400 group-hover:shadow-[0_0_40px_rgba(250,204,21,0.4)] transition-all duration-200"
+                  style={{ transform: 'skewX(-10deg)' }}>
+                  <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-lg text-yellow-300">
+                    {nextMatch?.isFinal ? '👑 ENTER FINAL DESTINATION' : '⚔️ PROCEED TO ARENA'}
+                  </div>
+                </div>
               </motion.button>
             </div>
           </div>
@@ -448,11 +456,17 @@ export default function TournamentBracketView() {
               <p className="text-gray-400 text-xs uppercase tracking-widest font-mono mb-4">All matches have been played</p>
               <motion.button
                 onClick={() => useGameStore.setState({ gamePhase: 'victory' })}
-                className="w-full py-3 rounded-xl font-black text-lg uppercase tracking-wider
-                  bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-black border-2 border-yellow-300/50"
-                whileHover={{ scale: 1.03 }}
+                className="group w-full"
+                animate={{ scale: [1, 1.03, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}>
-                👑 REVEAL CHAMPION
+                <div className="w-full py-4 border-2 border-red-500/60 bg-red-500/10 rounded-sm group-hover:bg-red-500/20 group-hover:border-yellow-400 group-hover:shadow-[0_0_40px_rgba(250,204,21,0.4)] transition-all duration-200"
+                  style={{ transform: 'skewX(-10deg)' }}>
+                  <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-lg text-yellow-300">
+                    👑 REVEAL CHAMPION
+                  </div>
+                </div>
               </motion.button>
             </div>
           </div>

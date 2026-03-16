@@ -202,9 +202,14 @@ export default function VictoryView() {
               {!isTournamentOver && (
                 <motion.div className="flex gap-4" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
                   <motion.button onClick={nextMatch}
-                    className="px-8 py-4 rounded-xl text-lg font-black uppercase tracking-wide bg-gradient-to-r from-blue-600 to-blue-500 text-white border-2 border-blue-400/50 hover:border-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all"
+                    className="group"
                     whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    Tournament Overview →
+                    <div className="px-8 py-4 border-2 border-cyan-400/50 bg-cyan-500/10 rounded-sm group-hover:border-cyan-300 group-hover:bg-cyan-500/20 group-hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all duration-200"
+                      style={{ transform: 'skewX(-10deg)' }}>
+                      <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-xl text-cyan-300">
+                        Tournament Overview →
+                      </div>
+                    </div>
                   </motion.button>
                 </motion.div>
               )}
@@ -329,16 +334,18 @@ export default function VictoryView() {
               </motion.p>
 
               <motion.button onClick={resetGame}
-                className="px-10 py-4 rounded-xl text-lg font-black uppercase tracking-wide
-                  bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-black
-                  border-2 border-yellow-300/50 shadow-[0_0_30px_rgba(250,204,21,0.4)]
-                  hover:shadow-[0_0_50px_rgba(250,204,21,0.6)] transition-all"
+                className="group"
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1.5 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}>
-                New Tournament 🎮
+                <div className="px-10 py-4 border-2 border-orange-400/50 bg-orange-500/10 rounded-sm group-hover:border-yellow-400 group-hover:bg-yellow-500/20 group-hover:shadow-[0_0_40px_rgba(250,204,21,0.4)] transition-all duration-200"
+                  style={{ transform: 'skewX(-10deg)' }}>
+                  <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-xl text-yellow-300">
+                    New Tournament 🎮
+                  </div>
+                </div>
               </motion.button>
             </motion.div>
           )}

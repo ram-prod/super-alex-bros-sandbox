@@ -137,14 +137,19 @@ export default function RulesView() {
           <motion.button
             onClick={prev}
             disabled={currentSlide === 0}
-            className={`px-6 py-3 rounded-xl font-black uppercase tracking-wider text-sm border-2 transition-colors
-              ${currentSlide === 0
-                ? 'border-gray-700 text-gray-700 cursor-not-allowed'
-                : 'border-white/30 text-white hover:border-yellow-400 hover:text-yellow-400'}`}
+            className="group"
             whileHover={currentSlide > 0 ? { scale: 1.05 } : {}}
             whileTap={currentSlide > 0 ? { scale: 0.95 } : {}}
           >
-            ← PREV
+            <div className={`px-6 py-3 border-2 rounded-sm transition-all duration-200 ${
+              currentSlide === 0
+                ? 'border-gray-700 cursor-not-allowed'
+                : 'border-white/30 group-hover:border-yellow-400 group-hover:shadow-[0_0_20px_rgba(250,204,21,0.2)]'
+            }`} style={{ transform: 'skewX(-10deg)' }}>
+              <div style={{ transform: 'skewX(10deg)' }} className={`text-smash text-sm ${
+                currentSlide === 0 ? 'text-gray-700' : 'text-white group-hover:text-yellow-400'
+              }`}>← PREV</div>
+            </div>
           </motion.button>
 
           {/* Dots */}
@@ -166,14 +171,19 @@ export default function RulesView() {
           <motion.button
             onClick={next}
             disabled={currentSlide === SLIDES.length - 1}
-            className={`px-6 py-3 rounded-xl font-black uppercase tracking-wider text-sm border-2 transition-colors
-              ${currentSlide === SLIDES.length - 1
-                ? 'border-gray-700 text-gray-700 cursor-not-allowed'
-                : 'border-white/30 text-white hover:border-yellow-400 hover:text-yellow-400'}`}
+            className="group"
             whileHover={currentSlide < SLIDES.length - 1 ? { scale: 1.05 } : {}}
             whileTap={currentSlide < SLIDES.length - 1 ? { scale: 0.95 } : {}}
           >
-            NEXT →
+            <div className={`px-6 py-3 border-2 rounded-sm transition-all duration-200 ${
+              currentSlide === SLIDES.length - 1
+                ? 'border-gray-700 cursor-not-allowed'
+                : 'border-white/30 group-hover:border-yellow-400 group-hover:shadow-[0_0_20px_rgba(250,204,21,0.2)]'
+            }`} style={{ transform: 'skewX(-10deg)' }}>
+              <div style={{ transform: 'skewX(10deg)' }} className={`text-smash text-sm ${
+                currentSlide === SLIDES.length - 1 ? 'text-gray-700' : 'text-white group-hover:text-yellow-400'
+              }`}>NEXT →</div>
+            </div>
           </motion.button>
         </div>
       </div>
