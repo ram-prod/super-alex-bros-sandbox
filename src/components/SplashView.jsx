@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useGameStore from '../store/useGameStore';
 
 export default function SplashView() {
-  const [showMenu, setShowMenu] = useState(false);
+  const hasSeenIntro = useGameStore((s) => s.hasSeenIntro);
+  const setHasSeenIntro = useGameStore((s) => s.setHasSeenIntro);
+  const [showMenu, setShowMenu] = useState(hasSeenIntro);
 
   const handlePressStart = () => {
     try {
@@ -12,6 +14,7 @@ export default function SplashView() {
       audio.play().catch(() => {});
     } catch {}
     useGameStore.getState().setBgmState('playing');
+    setHasSeenIntro();
     setShowMenu(true);
   };
 
@@ -60,7 +63,7 @@ export default function SplashView() {
         {/* Subtitle */}
         <motion.p
           className="text-gray-400 text-xs sm:text-sm uppercase tracking-[0.5em] mb-6"
-          initial={{ opacity: 0 }}
+          initial={hasSeenIntro ? { opacity: 0 } : { opacity: 0 }}
           animate={{ opacity: showMenu ? 0 : 1 }}
           transition={{ delay: showMenu ? 0 : 1.8, duration: showMenu ? 0.3 : 0.5 }}
         >
@@ -77,7 +80,7 @@ export default function SplashView() {
             {titleWords.map((w) => (
               <motion.div
                 key={w.text}
-                initial={{ x: w.fromX, opacity: 0 }}
+                initial={hasSeenIntro ? false : { x: w.fromX, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ type: 'tween', ease: 'easeOut', duration: 0.2, delay: w.delay }}
               >
@@ -99,7 +102,7 @@ export default function SplashView() {
         {!showMenu && (
           <motion.div
             className="text-5xl mb-8"
-            initial={{ scale: 0 }}
+            initial={hasSeenIntro ? false : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 1.4, type: 'tween', ease: 'easeOut', duration: 0.2 }}
           >
@@ -167,7 +170,7 @@ export default function SplashView() {
           {showMenu && (
             <motion.div
               className="flex flex-col gap-4 w-full max-w-md mt-4"
-              initial={{ opacity: 0, y: 40 }}
+              initial={hasSeenIntro ? false : { opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 40 }}
               transition={{ type: 'tween', ease: 'easeOut', duration: 0.5, delay: 0.2 }}

@@ -95,6 +95,8 @@ const useGameStore = create(
 
   // Audio
   audioResetTick: 0,
+  hasSeenIntro: false,
+  setHasSeenIntro: () => set({ hasSeenIntro: true }),
   isMusicPlaying: false,
   isMuted: false,
   bgmState: 'paused',
@@ -595,6 +597,7 @@ const useGameStore = create(
       tournamentSize: 11,
       players: createPlayers(11),
       audioResetTick: state.audioResetTick + 1,
+      hasSeenIntro: false,
       currentTurn: 1,
       bracketStage: 'prelims',
       pendingMatches: [],
@@ -619,7 +622,7 @@ const useGameStore = create(
     partialize: (state) =>
       Object.fromEntries(
         Object.entries(state).filter(
-          ([key]) => !['bgmState', 'isMusicPlaying'].includes(key)
+          ([key]) => !['bgmState', 'isMusicPlaying', 'hasSeenIntro'].includes(key)
         )
       ),
   }
