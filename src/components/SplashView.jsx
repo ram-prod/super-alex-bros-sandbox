@@ -8,6 +8,7 @@ export default function SplashView() {
       audio.volume = 0.5;
       audio.play().catch(() => {});
     } catch {}
+    useGameStore.getState().setBgmState('playing');
     useGameStore.setState({ gamePhase: 'roster_select' });
   };
 

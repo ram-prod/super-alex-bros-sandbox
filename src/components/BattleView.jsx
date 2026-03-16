@@ -214,7 +214,10 @@ export default function BattleView() {
       setTimeout(() => setBattleState('intro_p1'), 1500),
       setTimeout(() => setBattleState('intro_p2'), 2500),
       setTimeout(() => setBattleState('intro_fight'), 3500),
-      setTimeout(() => setBattleState('idle_question'), 5000),
+      setTimeout(() => {
+        setBattleState('idle_question');
+        useGameStore.getState().startBattle();
+      }, 5000),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -236,6 +239,16 @@ export default function BattleView() {
     setBattleState('action_hit');
 
     if (pendingLoserId) {
+      // Check if this hit is a K.O. (current damage + 100 = 200%)
+      const loserIsP1 = player1?.id === pendingLoserId;
+      const currentDmg = loserIsP1 ? p1Damage : p2Damage;
+      const isKO = currentDmg >= 100;
+
+      if (isKO) {
+        useGameStore.getState().setBgmState('faded');
+        useGameStore.getState().playSFX('ko_jingle');
+      }
+
       awardDamage(pendingLoserId);
     }
 

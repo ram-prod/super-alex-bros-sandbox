@@ -67,6 +67,16 @@ const useGameStore = create((set, get) => ({
   // Current battle
   currentMatch: { player1: null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null },
   selectedMap: null,
+
+  // Audio
+  isMusicPlaying: false,
+  isMuted: false,
+  bgmState: 'paused', // 'playing' | 'faded' | 'paused'
+  currentTrack: 'theme', // 'theme' | 'regular_game' | 'final_game'
+  startMusic: () => set({ isMusicPlaying: true }),
+  toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
+  setBgmState: (newState, newTrack) => set((state) => ({ bgmState: newState, currentTrack: newTrack || state.currentTrack })),
+  playSFX: (sfxId) => { try { const audio = new Audio(`/assets/audio/${sfxId}.mp3`); audio.volume = 1.0; audio.play().catch(()=>{}); } catch(e){} },
   matchWinner: null,
 
   // Tournament end
@@ -320,12 +330,17 @@ const useGameStore = create((set, get) => ({
       return {
         selectedMap: mapId,
         gamePhase: 'vs_screen',
-        currentMatch: { player1, player2, p1Damage: 0, p2Damage: 0, activeQuestion: null },
+        currentMatch: { player1, player2, p1Damage: 0, p2Damage: 0, activeQuestion: null, isFinal: !!nextMatch.isFinal },
         matchWinner: null,
       };
     }),
 
-  startBattle: () => set({ gamePhase: 'battle' }),
+  startBattle: () => {
+    const { currentMatch, setBgmState } = get();
+    const track = currentMatch.isFinal ? 'final_game' : 'regular_game';
+    set({ gamePhase: 'battle' });
+    setBgmState('playing', track);
+  },
 
   // ============================================
   // AWARD DAMAGE + auto KO
@@ -390,7 +405,9 @@ const useGameStore = create((set, get) => ({
       gamePhase: 'tournament_overview',
       selectedMap: null,
       matchWinner: null,
-      currentMatch: { player1: null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null },
+      bgmState: 'playing',
+      currentTrack: 'theme',
+      currentMatch: { player1: null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null, isFinal: false },
     })),
 
   goBack: () =>
@@ -418,6 +435,8 @@ const useGameStore = create((set, get) => ({
       tournamentWinner: null,
       isTournamentOver: false,
       _byePlayerId: null,
+      bgmState: 'paused',
+      currentTrack: 'theme',
     })),
 }));
 
