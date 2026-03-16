@@ -42,7 +42,7 @@ function FighterCard({ character, currentPlayerId, players }) {
     <motion.button
       onClick={() => assignCharacter(currentPlayerId, character.id)}
       disabled={isTaken}
-      className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 aspect-square flex flex-col items-center justify-center gap-2
+      className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 aspect-square flex flex-col items-center justify-center gap-2 w-[calc(33.333%-0.5rem)] sm:w-[calc(25%-0.5rem)] md:w-[calc(16.666%-0.625rem)]
         ${isCurrentPlayers
           ? 'border-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.5)] bg-gray-800/90 scale-[1.02]'
           : isTaken
@@ -262,7 +262,7 @@ export default function RosterView() {
 
       {/* Fighter Grid */}
       <div className="flex-1 px-4 pb-4">
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-w-4xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
           {characters.map((char) => (
             <FighterCard
               key={char.id}

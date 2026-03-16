@@ -123,7 +123,7 @@ function WildcardRoulette({ candidates, players, onComplete }) {
           WILDCARD DRAW
         </motion.h1>
 
-        <motion.p className="text-gray-400 text-lg sm:text-xl mb-8" initial={{ opacity: 0, y: 10 }}
+        <motion.p className="text-sm sm:text-base font-bold uppercase tracking-widest text-gray-300 drop-shadow-md mb-8" initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           {candidates.length} fighters have fallen. Only <span className="text-purple-300 font-bold">
           {useGameStore.getState().bracketConfig?.wildcards || 2}</span> will be resurrected.
@@ -159,12 +159,16 @@ function WildcardRoulette({ candidates, players, onComplete }) {
                 ))}
               </div>
               <motion.button onClick={onComplete}
-                className="mt-6 px-8 py-3 rounded-xl font-black text-base uppercase tracking-wider
-                  bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400/50"
+                className="group mt-6"
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 }}
-                whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(168,85,247,0.4)' }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}>
-                ⚔️ TO THE QUARTER-FINALS
+                <div className="px-8 py-3 border-2 border-purple-400/50 bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-sm group-hover:border-purple-300 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all duration-200"
+                  style={{ transform: 'skewX(-10deg)' }}>
+                  <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-base text-purple-200">
+                    ⚔️ TO THE QUARTER-FINALS
+                  </div>
+                </div>
               </motion.button>
             </motion.div>
           )}
@@ -173,15 +177,16 @@ function WildcardRoulette({ candidates, players, onComplete }) {
         {phase === 'intro' && (
           <>
             <motion.button onClick={() => setPhase('spinning')}
-              className="px-10 py-4 rounded-xl font-black text-xl uppercase tracking-wider
-                bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400/50"
-              animate={{
-                boxShadow: ['0 0 20px rgba(168,85,247,0.2)', '0 0 50px rgba(168,85,247,0.5)', '0 0 20px rgba(168,85,247,0.2)'],
-                scale: [1, 1.03, 1],
-              }}
+              className="group"
+              animate={{ scale: [1, 1.03, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
               whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}>
-              🎰 SPIN ROULETTE
+              <div className="px-10 py-4 border-2 border-purple-400/50 bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-sm group-hover:border-purple-300 group-hover:shadow-[0_0_50px_rgba(168,85,247,0.5)] transition-all duration-200"
+                style={{ transform: 'skewX(-10deg)' }}>
+                <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-xl text-purple-200">
+                  🎰 SPIN ROULETTE
+                </div>
+              </div>
             </motion.button>
             <motion.div className="mt-6 flex flex-wrap justify-center gap-2"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
@@ -318,7 +323,7 @@ export default function TournamentBracketView() {
           <h2 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 uppercase tracking-wider">
             {ROUND_HEADERS[activeRoundName] || 'TOURNAMENT'}
           </h2>
-          <p className="text-gray-600 text-[10px] font-mono uppercase tracking-widest mt-1">
+          <p className="text-gray-500 text-sm sm:text-base uppercase tracking-[0.3em] drop-shadow-sm mt-1">
             Bachelor&apos;s Knockout
           </p>
         </div>
@@ -377,7 +382,10 @@ export default function TournamentBracketView() {
 
                   {/* Arrow separator */}
                   {nextRound && (
-                    <div className="flex items-center justify-center px-2 sm:px-4">
+                    <motion.div className="flex items-center justify-center px-2 sm:px-4"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 + (roundIdx * 0.15), duration: 0.5, type: 'tween', ease: 'easeOut' }}>
                       <motion.span
                         className="text-4xl sm:text-5xl text-yellow-500/40"
                         animate={{ opacity: [0.3, 0.7, 0.3] }}
@@ -385,7 +393,7 @@ export default function TournamentBracketView() {
                       >
                         ➔
                       </motion.span>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
               );

@@ -200,7 +200,7 @@ export default function VictoryView() {
 
               {/* Buttons — only for round wins OR if tournament over and NOT about to SIKE */}
               {!isTournamentOver && (
-                <motion.div className="flex gap-4" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
+                <motion.div className="flex gap-4 mt-8" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
                   <motion.button onClick={nextMatch}
                     className="group"
                     whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

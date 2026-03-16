@@ -9,7 +9,8 @@ function MapCard({ map, index }) {
     <motion.button
       onClick={() => selectMap(map.id)}
       className="relative group rounded-xl overflow-hidden border-2 border-gray-700/40
-        hover:border-cyan-400/60 transition-colors duration-300 focus:outline-none"
+        hover:border-cyan-400/60 transition-colors duration-300 focus:outline-none
+        w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)]"
       initial={{ opacity: 0, y: 40, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 0.8 + 0.08 * index, type: 'spring', stiffness: 180, damping: 18 }}
@@ -98,7 +99,7 @@ export default function MapSelectView() {
 
       {/* Map Grid */}
       <div className="flex-1 px-4 sm:px-6 py-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-4 max-w-6xl mx-auto">
           {maps.map((map, i) => (
             <MapCard key={map.id} map={map} index={i} />
           ))}

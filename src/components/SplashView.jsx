@@ -61,8 +61,8 @@ export default function SplashView() {
         <motion.p
           className="text-gray-400 text-xs sm:text-sm uppercase tracking-[0.5em] mb-6"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: showMenu ? 0 : 1.8 }}
+          animate={{ opacity: showMenu ? 0 : 1 }}
+          transition={{ delay: showMenu ? 0 : 1.8, duration: showMenu ? 0.3 : 0.5 }}
         >
           The Ultimate Bachelor Tournament
         </motion.p>
