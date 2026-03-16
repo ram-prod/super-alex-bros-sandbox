@@ -159,36 +159,16 @@ export default function VsScreenView() {
           transition={{ delay: 1.5, type: 'spring', stiffness: 150 }}
           className="mt-4"
         >
-          <motion.div
-            className={`px-10 sm:px-14 py-4 sm:py-5 text-xl sm:text-2xl font-black uppercase tracking-[0.25em]
-              border-2 border-yellow-400/50 text-yellow-300 rounded-xl backdrop-blur-sm
-              ${isFinal
-                ? 'bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20 text-2xl sm:text-3xl'
-                : 'bg-gradient-to-r from-red-500/10 via-yellow-500/10 to-red-500/10'}`}
-            animate={{
-              borderColor: [
-                'rgba(250,204,21,0.3)',
-                'rgba(250,204,21,1)',
-                'rgba(250,204,21,0.3)',
-              ],
-              boxShadow: isFinal
-                ? [
-                    '0 0 30px rgba(250,204,21,0.2), inset 0 0 20px rgba(250,204,21,0.1)',
-                    '0 0 80px rgba(250,204,21,0.6), inset 0 0 40px rgba(250,204,21,0.2)',
-                    '0 0 30px rgba(250,204,21,0.2), inset 0 0 20px rgba(250,204,21,0.1)',
-                  ]
-                : [
-                    '0 0 20px rgba(250,204,21,0.1)',
-                    '0 0 60px rgba(250,204,21,0.4)',
-                    '0 0 20px rgba(250,204,21,0.1)',
-                  ],
-              scale: isFinal ? [1, 1.04, 1] : [1],
-            }}
-            transition={{ duration: isFinal ? 1.2 : 1.5, repeat: Infinity }}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-          >
-            ⚔️ COMMENCE BATTLE ⚔️
+          <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
+            <div className={`flex items-center justify-center px-10 sm:px-14 py-4 sm:py-5 border-2 backdrop-blur-md transition-all duration-300 ${
+              isFinal
+                ? 'bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20 border-yellow-400/80 text-yellow-300 hover:shadow-[0_0_50px_rgba(250,204,21,0.6)]'
+                : 'bg-red-600/20 border-red-500/80 text-red-400 hover:bg-red-600/30 hover:border-red-400 hover:shadow-[0_0_40px_rgba(239,68,68,0.5)]'
+            }`} style={{ transform: 'skewX(-10deg)' }}>
+              <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-3xl sm:text-4xl">
+                ⚔️ COMMENCE BATTLE ⚔️
+              </div>
+            </div>
           </motion.div>
         </motion.button>
       </div>

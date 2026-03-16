@@ -124,26 +124,27 @@ export default function SplashView() {
               transition={{ delay: 2, type: 'tween', ease: 'easeOut', duration: 0.3 }}
               className="relative"
             >
-              <motion.div
-                className="px-14 py-5 border-2 border-yellow-400/50 text-yellow-300 rounded-sm
-                  bg-yellow-500/10 backdrop-blur-sm
-                  hover:bg-yellow-500/20 hover:border-yellow-400 transition-colors"
-                style={{ transform: 'skewX(-10deg)' }}
-                animate={{
-                  borderColor: ['rgba(250,204,21,0.3)', 'rgba(250,204,21,0.8)', 'rgba(250,204,21,0.3)'],
-                  boxShadow: [
-                    '0 0 15px rgba(250,204,21,0.1), inset 0 0 15px rgba(250,204,21,0.05)',
-                    '0 0 50px rgba(250,204,21,0.3), inset 0 0 30px rgba(250,204,21,0.1)',
-                    '0 0 15px rgba(250,204,21,0.1), inset 0 0 15px rgba(250,204,21,0.05)',
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
-              >
-                <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-3xl tracking-[0.35em]">
-                  PRESS START
-                </div>
+              <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}>
+                <motion.div
+                  className="px-14 py-5 border-2 border-yellow-400/50 text-yellow-300 rounded-sm
+                    bg-yellow-500/10 backdrop-blur-sm
+                    hover:bg-yellow-500/20 hover:border-yellow-400 transition-colors"
+                  initial={{ skewX: -10 }}
+                  animate={{
+                    skewX: -10,
+                    borderColor: ['rgba(250,204,21,0.3)', 'rgba(250,204,21,0.8)', 'rgba(250,204,21,0.3)'],
+                    boxShadow: [
+                      '0 0 15px rgba(250,204,21,0.1), inset 0 0 15px rgba(250,204,21,0.05)',
+                      '0 0 50px rgba(250,204,21,0.3), inset 0 0 30px rgba(250,204,21,0.1)',
+                      '0 0 15px rgba(250,204,21,0.1), inset 0 0 15px rgba(250,204,21,0.05)',
+                    ],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-3xl tracking-[0.35em]">
+                    PRESS START
+                  </div>
+                </motion.div>
               </motion.div>
             </motion.button>
           )}
