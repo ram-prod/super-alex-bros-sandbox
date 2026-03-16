@@ -21,6 +21,57 @@ const shuffle = (arr) => {
   return a;
 };
 
+// ============================================
+// BRACKET LOOKUP TABLE
+// prelims  = number of prelim matches
+// byes     = players who skip to the base round
+// wildcards = losers resurrected from prelims
+// base     = first "real" knockout round
+//
+// Math check for every N:
+//   fighters_in_prelims = prelims * 2
+//   fighters_in_prelims + byes = N
+//   prelim_winners + byes + wildcards = slots in base round
+// ============================================
+const BRACKET_CONFIG = {
+  2:  { base: 'Final', prelims: 0, byes: 0, wildcards: 0 },
+  3:  { base: 'Final', prelims: 1, byes: 1, wildcards: 0 },
+  4:  { base: 'SF',    prelims: 0, byes: 0, wildcards: 0 },
+  5:  { base: 'SF',    prelims: 1, byes: 3, wildcards: 0 },
+  6:  { base: 'SF',    prelims: 2, byes: 2, wildcards: 0 },
+  7:  { base: 'SF',    prelims: 3, byes: 1, wildcards: 0 },
+  8:  { base: 'QF',    prelims: 0, byes: 0, wildcards: 0 },
+  9:  { base: 'QF',    prelims: 4, byes: 1, wildcards: 3 },
+  10: { base: 'QF',    prelims: 5, byes: 0, wildcards: 3 },
+  11: { base: 'QF',    prelims: 5, byes: 1, wildcards: 2 },
+};
+
+const ROUND_ORDER = ['Prelims', 'QF', 'SF', 'Final'];
+const ROUND_MATCH_COUNT = { QF: 4, SF: 2, Final: 1 };
+const ROUND_LABELS = {
+  QF: (i) => `Quarter Final ${i + 1}`,
+  SF: (i) => `Semi Final ${i + 1}`,
+  Final: () => 'GRAND FINAL',
+};
+
+// Build empty matches for a round
+const emptyMatches = (round, count) =>
+  Array.from({ length: count }, (_, i) => ({
+    p1Id: null,
+    p2Id: null,
+    round,
+    label: ROUND_LABELS[round]?.(i) || round,
+    isFinal: round === 'Final',
+    completed: false,
+    winnerId: null,
+  }));
+
+// Get rounds that come after a given base (inclusive)
+const roundsFrom = (base) => {
+  const idx = ROUND_ORDER.indexOf(base);
+  return ROUND_ORDER.slice(idx);
+};
+
 const useGameStore = create((set, get) => ({
   // --- state ---
   gamePhase: 'splash',
@@ -32,12 +83,13 @@ const useGameStore = create((set, get) => ({
   bracketStage: 'prelims', // 'prelims' | 'wildcards' | 'qf' | 'sf' | 'final'
   pendingMatches: [],
   completedMatches: [],
-  knockoutRounds: [],      // [{ round, matches }]
+  knockoutRounds: [],      // [{ round, matches }] — FULL pre-generated tree
 
   // Bachelor's 8 specifics
-  vipPlayerId: null,
-  wildcardCandidates: [],  // loser IDs from prelims
-  selectedWildcards: [],   // the 2 resurrected player IDs
+  vipPlayerIds: [],        // Players with automatic byes
+  wildcardCandidates: [],  // Loser IDs from prelims
+  selectedWildcards: [],   // Resurrected player IDs
+  bracketConfig: null,     // Current BRACKET_CONFIG entry
 
   // Current battle
   currentMatch: { player1: null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null, isFinal: false },
@@ -90,39 +142,99 @@ const useGameStore = create((set, get) => ({
     }),
 
   // ============================================
-  // BACHELOR'S 8 TOURNAMENT GENERATION
+  // FULL BRACKET GENERATION
   // ============================================
   generateTournament: () =>
     set((state) => {
       const { players } = state;
+      const size = players.length;
+      const config = BRACKET_CONFIG[size];
+      if (!config) return {};
 
-      // Find VIP (alexander) or pick random
-      const vipPlayer = players.find((p) => p.chosenCharacter === 'alexander');
-      const vipId = vipPlayer ? vipPlayer.id : shuffle(players.map((p) => p.id))[0];
+      // --- Identify VIPs (bye players) ---
+      const alex = players.find((p) => p.chosenCharacter === 'alexander');
+      const vipIds = [];
 
-      // Remaining 10 fighters
-      const fighterIds = shuffle(players.filter((p) => p.id !== vipId).map((p) => p.id));
-
-      // Create 5 Prelim matches
-      const prelimMatches = [];
-      for (let i = 0; i < fighterIds.length; i += 2) {
-        prelimMatches.push({
-          p1Id: fighterIds[i],
-          p2Id: fighterIds[i + 1],
-          round: 'Prelims',
-          label: `Prelim ${Math.floor(i / 2) + 1}`,
-          isFinal: false,
-          completed: false,
-          winnerId: null,
-        });
+      if (config.byes > 0) {
+        // Alexander is always first VIP if present
+        if (alex) vipIds.push(alex.id);
+        // Fill remaining byes randomly from non-alexander players
+        const nonAlexIds = shuffle(players.filter((p) => p.id !== alex?.id).map((p) => p.id));
+        while (vipIds.length < config.byes) {
+          vipIds.push(nonAlexIds.shift());
+        }
       }
 
+      // --- Fighters = everyone not a VIP ---
+      const fighterIds = shuffle(players.filter((p) => !vipIds.includes(p.id)).map((p) => p.id));
+
+      // --- Build full knockoutRounds tree ---
+      const rounds = [];
+
+      // Prelims (if any)
+      if (config.prelims > 0) {
+        const prelimMatches = [];
+        for (let i = 0; i < config.prelims; i++) {
+          prelimMatches.push({
+            p1Id: fighterIds[i * 2],
+            p2Id: fighterIds[i * 2 + 1],
+            round: 'Prelims',
+            label: `Prelim ${i + 1}`,
+            isFinal: false,
+            completed: false,
+            winnerId: null,
+          });
+        }
+        rounds.push({ round: 'Prelims', matches: prelimMatches });
+      }
+
+      // Base round + subsequent rounds (all empty initially)
+      const activeRounds = roundsFrom(config.base);
+      for (const roundName of activeRounds) {
+        const matchCount = ROUND_MATCH_COUNT[roundName] || 1;
+        rounds.push({ round: roundName, matches: emptyMatches(roundName, matchCount) });
+      }
+
+      // --- If NO prelims, place all fighters directly into base round ---
+      if (config.prelims === 0) {
+        const allIds = shuffle([...fighterIds, ...vipIds]);
+        const baseRound = rounds.find((r) => r.round === config.base);
+        for (let i = 0; i < baseRound.matches.length; i++) {
+          baseRound.matches[i].p1Id = allIds[i * 2];
+          baseRound.matches[i].p2Id = allIds[i * 2 + 1];
+        }
+      }
+
+      // --- If prelims exist but NO wildcards, place byes into base round ---
+      // (for N=3,5,6,7: prelim winners will be slotted by advanceTournament)
+      if (config.prelims > 0 && config.wildcards === 0 && config.byes > 0) {
+        const baseRound = rounds.find((r) => r.round === config.base);
+        // Place byes into alternating empty slots to spread them across matches
+        let byeIdx = 0;
+        for (let m = 0; m < baseRound.matches.length && byeIdx < vipIds.length; m++) {
+          // Fill p1 slot first, skip if we want to spread
+          if (baseRound.matches[m].p1Id === null) {
+            baseRound.matches[m].p1Id = vipIds[byeIdx++];
+          } else if (baseRound.matches[m].p2Id === null) {
+            baseRound.matches[m].p2Id = vipIds[byeIdx++];
+          }
+        }
+      }
+
+      // --- Determine first active stage + pending matches ---
+      const firstStage = config.prelims > 0 ? 'prelims' : config.base.toLowerCase();
+      const firstRound = rounds.find((r) =>
+        r.round === (config.prelims > 0 ? 'Prelims' : config.base)
+      );
+      const pending = firstRound ? firstRound.matches.filter((m) => m.p1Id && m.p2Id && !m.completed) : [];
+
       return {
-        vipPlayerId: vipId,
-        bracketStage: 'prelims',
-        pendingMatches: [...prelimMatches],
+        bracketConfig: config,
+        vipPlayerIds: vipIds,
+        bracketStage: firstStage,
+        knockoutRounds: rounds,
+        pendingMatches: pending.map((m) => ({ ...m })),
         completedMatches: [],
-        knockoutRounds: [{ round: 'Prelims', matches: prelimMatches.map((m) => ({ ...m })) }],
         wildcardCandidates: [],
         selectedWildcards: [],
         isTournamentOver: false,
@@ -132,22 +244,29 @@ const useGameStore = create((set, get) => ({
     }),
 
   // ============================================
-  // ADVANCE TOURNAMENT (called after all pending matches complete)
+  // ADVANCE TOURNAMENT
+  // Fills winners into next round's empty slots
   // ============================================
   advanceTournament: () =>
     set((state) => {
-      const { bracketStage, knockoutRounds, players } = state;
+      const { bracketStage, knockoutRounds, players, bracketConfig } = state;
+      if (!bracketConfig) return {};
 
-      // Get latest round results
-      const lastRound = knockoutRounds[knockoutRounds.length - 1];
-      if (!lastRound) return {};
+      // Map bracketStage to round name
+      const stageToRound = { prelims: 'Prelims', qf: 'QF', sf: 'SF', final: 'Final' };
+      const currentRoundName = stageToRound[bracketStage];
+      const currentRoundIdx = knockoutRounds.findIndex((r) => r.round === currentRoundName);
+      if (currentRoundIdx === -1) return {};
 
-      const completedInRound = lastRound.matches.filter((m) => m.completed);
-      const winnerIds = completedInRound.map((m) => m.winnerId);
-      const loserIds = completedInRound.map((m) => m.winnerId === m.p1Id ? m.p2Id : m.p1Id);
+      const currentRound = knockoutRounds[currentRoundIdx];
+      const allDone = currentRound.matches.every((m) => m.completed);
+      if (!allDone) return {};
 
-      if (bracketStage === 'prelims') {
-        // Move losers to wildcard candidates — do NOT eliminate yet
+      const winnerIds = currentRound.matches.map((m) => m.winnerId);
+      const loserIds = currentRound.matches.map((m) => m.winnerId === m.p1Id ? m.p2Id : m.p1Id);
+
+      // --- PRELIMS with wildcards: pause for roulette ---
+      if (bracketStage === 'prelims' && bracketConfig.wildcards > 0) {
         return {
           bracketStage: 'wildcards',
           wildcardCandidates: loserIds,
@@ -155,51 +274,66 @@ const useGameStore = create((set, get) => ({
         };
       }
 
-      if (bracketStage === 'qf') {
-        // Eliminate QF losers, generate 2 SF matches
-        const updatedPlayers = players.map((p) =>
-          loserIds.includes(p.id) ? { ...p, isEliminated: true } : p
-        );
-        const shuffledWinners = shuffle(winnerIds);
-        const sfMatches = [
-          { p1Id: shuffledWinners[0], p2Id: shuffledWinners[1], round: 'SF', label: 'Semi Final 1', isFinal: false, completed: false, winnerId: null },
-          { p1Id: shuffledWinners[2], p2Id: shuffledWinners[3], round: 'SF', label: 'Semi Final 2', isFinal: false, completed: false, winnerId: null },
-        ];
-        return {
-          players: updatedPlayers,
-          bracketStage: 'sf',
-          pendingMatches: [...sfMatches],
-          knockoutRounds: [...knockoutRounds, { round: 'SF', matches: sfMatches.map((m) => ({ ...m })) }],
-          gamePhase: 'tournament_overview',
-        };
-      }
-
-      if (bracketStage === 'sf') {
-        // Eliminate SF losers, generate Final
-        const updatedPlayers = players.map((p) =>
-          loserIds.includes(p.id) ? { ...p, isEliminated: true } : p
-        );
-        const finalMatch = {
-          p1Id: winnerIds[0], p2Id: winnerIds[1], round: 'Final', label: 'GRAND FINAL', isFinal: true, completed: false, winnerId: null,
-        };
-        return {
-          players: updatedPlayers,
-          bracketStage: 'final',
-          pendingMatches: [{ ...finalMatch }],
-          knockoutRounds: [...knockoutRounds, { round: 'Final', matches: [{ ...finalMatch }] }],
-          gamePhase: 'tournament_overview',
-        };
-      }
-
+      // --- FINAL: tournament over ---
       if (bracketStage === 'final') {
         const winner = players.find((p) => p.id === winnerIds[0]);
-        return {
-          isTournamentOver: true,
-          tournamentWinner: winner,
-        };
+        return { isTournamentOver: true, tournamentWinner: winner };
       }
 
-      return {};
+      // --- Standard advance: fill winners into next round ---
+      const nextRoundIdx = currentRoundIdx + 1;
+      if (nextRoundIdx >= knockoutRounds.length) return {};
+
+      const updatedRounds = knockoutRounds.map((r, i) => {
+        if (i !== nextRoundIdx) return r;
+
+        const nextMatches = r.matches.map((m) => ({ ...m }));
+
+        // For prelims without wildcards, we also need to slot bye players.
+        // Winners + existing byes fill the slots.
+        // Standard bracket mapping: match i winner → next round match floor(i/2), alternating p1/p2
+        for (let mi = 0; mi < currentRound.matches.length; mi++) {
+          const targetMatchIdx = Math.floor(mi / 2);
+          const targetSlot = mi % 2 === 0 ? 'p1Id' : 'p2Id';
+
+          if (targetMatchIdx < nextMatches.length) {
+            // Only fill if the slot is still empty (byes may have pre-filled some)
+            if (nextMatches[targetMatchIdx][targetSlot] === null) {
+              nextMatches[targetMatchIdx][targetSlot] = winnerIds[mi];
+            } else {
+              // Slot taken by a bye, fill the other slot
+              const otherSlot = targetSlot === 'p1Id' ? 'p2Id' : 'p1Id';
+              if (nextMatches[targetMatchIdx][otherSlot] === null) {
+                nextMatches[targetMatchIdx][otherSlot] = winnerIds[mi];
+              }
+            }
+          }
+        }
+
+        return { ...r, matches: nextMatches };
+      });
+
+      // Eliminate losers
+      const updatedPlayers = players.map((p) =>
+        loserIds.includes(p.id) ? { ...p, isEliminated: true } : p
+      );
+
+      // Determine next stage
+      const nextRoundName = updatedRounds[nextRoundIdx].round;
+      const nextStage = nextRoundName.toLowerCase(); // 'qf' | 'sf' | 'final'
+
+      // Pending = next round's matches that have both players filled
+      const nextPending = updatedRounds[nextRoundIdx].matches
+        .filter((m) => m.p1Id && m.p2Id && !m.completed)
+        .map((m) => ({ ...m }));
+
+      return {
+        players: updatedPlayers,
+        bracketStage: nextStage,
+        knockoutRounds: updatedRounds,
+        pendingMatches: nextPending,
+        gamePhase: 'tournament_overview',
+      };
     }),
 
   // ============================================
@@ -207,46 +341,49 @@ const useGameStore = create((set, get) => ({
   // ============================================
   executeWildcards: () =>
     set((state) => {
-      const { wildcardCandidates, vipPlayerId, players, knockoutRounds } = state;
+      const { wildcardCandidates, vipPlayerIds, players, knockoutRounds, bracketConfig } = state;
+      if (!bracketConfig) return {};
 
-      // Pick 2 random wildcards from the 5 prelim losers
-      const shuffled = shuffle([...wildcardCandidates]);
-      const selected = shuffled.slice(0, 2);
-      const eliminated = shuffled.slice(2);
+      // Pick wildcards from prelim losers
+      const shuffledLosers = shuffle([...wildcardCandidates]);
+      const selected = shuffledLosers.slice(0, bracketConfig.wildcards);
+      const eliminated = shuffledLosers.slice(bracketConfig.wildcards);
 
-      // Eliminate the 3 who didn't make it
+      // Eliminate the rest
       const updatedPlayers = players.map((p) =>
         eliminated.includes(p.id) ? { ...p, isEliminated: true } : p
       );
 
-      // 8 players: 5 prelim winners + 1 VIP + 2 wildcards
+      // Gather all players for the QF round
       const prelimWinnerIds = knockoutRounds
         .find((r) => r.round === 'Prelims')
         ?.matches.filter((m) => m.completed)
         .map((m) => m.winnerId) || [];
 
-      const qfPlayerIds = shuffle([...prelimWinnerIds, vipPlayerId, ...selected]);
+      const qfPlayerIds = shuffle([...prelimWinnerIds, ...vipPlayerIds, ...selected]);
 
-      // Generate 4 QF matches
-      const qfMatches = [];
-      for (let i = 0; i < qfPlayerIds.length; i += 2) {
-        qfMatches.push({
-          p1Id: qfPlayerIds[i],
-          p2Id: qfPlayerIds[i + 1],
-          round: 'QF',
-          label: `Quarter Final ${Math.floor(i / 2) + 1}`,
-          isFinal: false,
-          completed: false,
-          winnerId: null,
-        });
-      }
+      // Fill the QF round slots
+      const updatedRounds = knockoutRounds.map((r) => {
+        if (r.round !== 'QF') return r;
+        const matches = r.matches.map((m, i) => ({
+          ...m,
+          p1Id: qfPlayerIds[i * 2] || null,
+          p2Id: qfPlayerIds[i * 2 + 1] || null,
+        }));
+        return { ...r, matches };
+      });
+
+      const qfRound = updatedRounds.find((r) => r.round === 'QF');
+      const pending = qfRound
+        ? qfRound.matches.filter((m) => m.p1Id && m.p2Id && !m.completed).map((m) => ({ ...m }))
+        : [];
 
       return {
         players: updatedPlayers,
         selectedWildcards: selected,
         bracketStage: 'qf',
-        pendingMatches: [...qfMatches],
-        knockoutRounds: [...knockoutRounds, { round: 'QF', matches: qfMatches.map((m) => ({ ...m })) }],
+        knockoutRounds: updatedRounds,
+        pendingMatches: pending,
         gamePhase: 'tournament_overview',
       };
     }),
@@ -363,9 +500,10 @@ const useGameStore = create((set, get) => ({
       pendingMatches: [],
       completedMatches: [],
       knockoutRounds: [],
-      vipPlayerId: null,
+      vipPlayerIds: [],
       wildcardCandidates: [],
       selectedWildcards: [],
+      bracketConfig: null,
       currentMatch: { player1: null, player2: null, p1Damage: 0, p2Damage: 0, activeQuestion: null, isFinal: false },
       selectedMap: null,
       matchWinner: null,

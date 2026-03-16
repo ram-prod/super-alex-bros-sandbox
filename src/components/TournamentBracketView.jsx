@@ -41,7 +41,7 @@ function PlayerTag({ player, isWinner, isWildcard, isVip }) {
   );
 }
 
-function MatchCard({ match, players, selectedWildcards, vipPlayerId }) {
+function MatchCard({ match, players, selectedWildcards, vipPlayerIds }) {
   const p1 = players.find((p) => p.id === match.p1Id);
   const p2 = players.find((p) => p.id === match.p2Id);
 
@@ -54,14 +54,14 @@ function MatchCard({ match, players, selectedWildcards, vipPlayerId }) {
         player={p1}
         isWinner={match.completed && match.winnerId === p1?.id}
         isWildcard={selectedWildcards.includes(p1?.id)}
-        isVip={p1?.id === vipPlayerId}
+        isVip={vipPlayerIds?.includes(p1?.id)}
       />
       <div className="text-center text-gray-600 text-xs font-bold">VS</div>
       <PlayerTag
         player={p2}
         isWinner={match.completed && match.winnerId === p2?.id}
         isWildcard={selectedWildcards.includes(p2?.id)}
-        isVip={p2?.id === vipPlayerId}
+        isVip={vipPlayerIds?.includes(p2?.id)}
       />
       {match.completed && (
         <div className="text-center text-[10px] text-green-400/60 font-mono uppercase tracking-wider mt-1">✓ Complete</div>
@@ -281,7 +281,7 @@ function WildcardRoulette({ candidates, players, onComplete }) {
 export default function TournamentBracketView() {
   const {
     players, knockoutRounds, pendingMatches, bracketStage,
-    vipPlayerId, wildcardCandidates, selectedWildcards,
+    vipPlayerIds, wildcardCandidates, selectedWildcards,
     isTournamentOver, generateTournament, advanceTournament, executeWildcards,
   } = useGameStore();
 
@@ -304,7 +304,7 @@ export default function TournamentBracketView() {
     }
   }, [pendingMatches.length, knockoutRounds, bracketStage, isTournamentOver]);
 
-  const vipPlayer = players.find((p) => p.id === vipPlayerId);
+  const vipPlayers = vipPlayerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean);
   const nextMatch = pendingMatches[0];
   const nextP1 = nextMatch ? players.find((p) => p.id === nextMatch.p1Id) : null;
   const nextP2 = nextMatch ? players.find((p) => p.id === nextMatch.p2Id) : null;
@@ -359,9 +359,9 @@ export default function TournamentBracketView() {
                 </div>
 
                 {/* VIP card in Prelims column */}
-                {round.round === 'Prelims' && vipPlayer && (
-                  <VipCard player={vipPlayer} />
-                )}
+                {round.round === 'Prelims' && vipPlayers.length > 0 && vipPlayers.map((vp) => (
+                  <VipCard key={vp.id} player={vp} />
+                ))}
 
                 {/* Match cards */}
                 {round.matches.map((match, mIdx) => (
@@ -370,7 +370,7 @@ export default function TournamentBracketView() {
                     match={match}
                     players={players}
                     selectedWildcards={selectedWildcards}
-                    vipPlayerId={vipPlayerId}
+                    vipPlayerIds={vipPlayerIds}
                   />
                 ))}
               </div>
