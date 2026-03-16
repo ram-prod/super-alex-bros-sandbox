@@ -15,7 +15,7 @@ function PlayerSlot({ player, placeholder, isWinner, isVip, isWildcard }) {
   if (!player) {
     // Show placeholder label or TBD
     const label = placeholder
-      ? placeholder.startsWith('W_') ? `Winner ${placeholder.split('_').slice(1).join(' ')}`
+      ? placeholder.startsWith('W_') ? `Winner ${placeholder.split('_')[1]} ${parseInt(placeholder.split('_')[2]) + 1}`
       : placeholder.startsWith('WC_') ? `🃏 Wildcard ${+placeholder.split('_')[1] + 1}`
       : placeholder.startsWith('VIP_') ? '👑 VIP Bye'
       : 'TBD'
@@ -30,10 +30,10 @@ function PlayerSlot({ player, placeholder, isWinner, isVip, isWildcard }) {
   const emoji = FIGHTER_EMOJI[charId] || '❓';
 
   return (
-    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-bold transition-all ${
+    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-sm font-bold transition-all ${
       isWinner ? 'bg-green-500/15 text-green-300' : player.isEliminated ? 'bg-red-500/5 text-red-400/50 line-through' : 'bg-white/5 text-white'
     }`}>
-      <span className="text-sm">{emoji}</span>
+      <span className="text-base">{emoji}</span>
       <span className="truncate">{player.name}</span>
       {isVip && <span className="text-[9px] text-yellow-400">👑</span>}
       {isWildcard && <span className="text-[9px] text-purple-400">🃏</span>}
@@ -117,7 +117,7 @@ function WildcardRoulette({ candidates, players, onComplete }) {
           WILDCARD DRAW
         </motion.h1>
 
-        <motion.p className="text-gray-400 text-sm mb-8" initial={{ opacity: 0, y: 10 }}
+        <motion.p className="text-gray-400 text-lg sm:text-xl mb-8" initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           {candidates.length} fighters have fallen. Only <span className="text-purple-300 font-bold">
           {useGameStore.getState().bracketConfig?.wildcards || 2}</span> will be resurrected.
@@ -262,21 +262,24 @@ export default function TournamentBracketView() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowExitModal(false)} />
             <motion.div
-              className="relative z-10 bg-gray-900/95 border-2 border-red-500/40 rounded-2xl p-6 max-w-sm w-full text-center shadow-[0_0_40px_rgba(239,68,68,0.15)]"
+              className="relative z-10 bg-black/95 border-4 border-red-500/80 rounded-none p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)]"
+              style={{ transform: 'skewX(-2deg)' }}
               initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 }}>
-              <h3 className="text-2xl font-black text-red-400 mb-2">⚠️ End Tournament?</h3>
-              <p className="text-gray-400 text-sm mb-6">Are you sure? All progress will be lost.</p>
+              <h3 className="text-3xl font-black text-red-500 mb-2 uppercase">⚠️ End Tournament?</h3>
+              <p className="text-gray-300 text-lg mb-8 uppercase">Are you sure? All progress will be lost.</p>
               <div className="flex gap-3">
                 <motion.button
                   onClick={() => setShowExitModal(false)}
                   className="flex-1 py-3 rounded-xl font-bold text-sm uppercase tracking-wider text-gray-300 border border-gray-600 hover:border-gray-400 transition-colors"
+                  style={{ transform: 'skewX(-5deg)' }}
                   whileTap={{ scale: 0.95 }}>
                   Cancel
                 </motion.button>
                 <motion.button
                   onClick={() => useGameStore.getState().resetGame()}
                   className="flex-1 py-3 rounded-xl font-black text-sm uppercase tracking-wider bg-red-600 text-white border-2 border-red-500/50 hover:bg-red-500 transition-colors"
+                  style={{ transform: 'skewX(-5deg)' }}
                   whileTap={{ scale: 0.95 }}>
                   End Tournament
                 </motion.button>
@@ -291,12 +294,13 @@ export default function TournamentBracketView() {
         {!hasStarted ? (
           <BackButton onClick={() => useGameStore.getState().goBack()} />
         ) : (
-          <motion.button
-            onClick={() => setShowExitModal(true)}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider text-red-400/60 border border-red-500/20 hover:border-red-500/50 hover:text-red-400 transition-colors"
-            whileTap={{ scale: 0.95 }}
-          >
-            ✕ Exit
+          <motion.button onClick={() => setShowExitModal(true)}
+            className="group flex items-center gap-2 z-50"
+            whileHover={{ x: -4 }} whileTap={{ scale: 0.93 }}>
+            <div className="flex items-center gap-2 px-4 py-2 border-2 border-red-600/60 bg-gray-900/80 backdrop-blur-sm text-red-400 text-sm font-bold uppercase tracking-wider group-hover:border-red-400/60 group-hover:text-red-300 group-hover:bg-red-500/10 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] transition-all duration-200"
+              style={{ transform: 'skewX(-10deg)' }}>
+              <span style={{ transform: 'skewX(10deg)' }} className="flex items-center gap-2"><span className="text-lg">✕</span><span>Exit</span></span>
+            </div>
           </motion.button>
         )}
         <div className="text-center">
@@ -326,7 +330,7 @@ export default function TournamentBracketView() {
               return (
                 <div key={roundIdx} className="contents">
                   {/* Round column */}
-                  <div className="flex flex-col flex-1 min-w-0 max-w-[220px]">
+                  <div className="flex flex-col flex-1 min-w-0 max-w-[280px] sm:max-w-[320px]">
                     {/* Round label */}
                     <div className={`text-center mb-2 ${isActiveRound ? 'text-yellow-400' : 'text-gray-500'}`}>
                       <div className="text-[10px] font-black uppercase tracking-wider">
@@ -363,7 +367,7 @@ export default function TournamentBracketView() {
                   {nextRound && (
                     <div className="flex items-center justify-center px-2 sm:px-4">
                       <motion.span
-                        className="text-3xl sm:text-4xl text-yellow-500/40"
+                        className="text-4xl sm:text-5xl text-yellow-500/40"
                         animate={{ opacity: [0.3, 0.7, 0.3] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
@@ -410,16 +414,16 @@ export default function TournamentBracketView() {
           initial={{ y: 80 }} animate={{ y: 0 }} transition={{ type: 'tween', ease: 'easeOut', duration: 0.4 }}>
           <div className="bg-gradient-to-t from-black via-black/95 to-transparent pt-6 pb-4 px-4">
             <div className="max-w-md mx-auto">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <span className="text-lg">{FIGHTER_EMOJI[nextP1?.chosenCharacter] || '❓'}</span>
-                <span className="text-sm font-bold text-white">{nextP1?.name}</span>
-                <span className="text-yellow-500 font-black text-xs">VS</span>
-                <span className="text-sm font-bold text-white">{nextP2?.name}</span>
-                <span className="text-lg">{FIGHTER_EMOJI[nextP2?.chosenCharacter] || '❓'}</span>
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <span className="text-4xl drop-shadow-lg">{FIGHTER_EMOJI[nextP1?.chosenCharacter] || '❓'}</span>
+                <span className="text-2xl sm:text-3xl font-black text-white drop-shadow-md">{nextP1?.name}</span>
+                <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-400 to-red-500 mx-2" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.2)' }}>VS</span>
+                <span className="text-2xl sm:text-3xl font-black text-white drop-shadow-md">{nextP2?.name}</span>
+                <span className="text-4xl drop-shadow-lg">{FIGHTER_EMOJI[nextP2?.chosenCharacter] || '❓'}</span>
               </div>
               <motion.button
                 onClick={handleProceed}
-                className="w-full py-3 rounded-xl font-black text-sm uppercase tracking-wider
+                className="w-full py-4 rounded-xl font-black text-lg uppercase tracking-wider
                   bg-gradient-to-r from-yellow-500 to-orange-500 text-black
                   border-2 border-yellow-400/50"
                 animate={{

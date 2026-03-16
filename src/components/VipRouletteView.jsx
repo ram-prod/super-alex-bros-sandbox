@@ -55,7 +55,7 @@ export default function VipRouletteView() {
           VIP ROULETTE
         </motion.h1>
 
-        <motion.p className="text-gray-400 text-sm mb-8"
+        <motion.p className="text-gray-400 text-lg sm:text-xl mb-8"
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           One lucky fighter gets an automatic bye to the next round! 👑
         </motion.p>

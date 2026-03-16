@@ -94,6 +94,7 @@ const useGameStore = create(
   matchWinner: null,
 
   // Audio
+  audioResetTick: 0,
   isMusicPlaying: false,
   isMuted: false,
   bgmState: 'paused',
@@ -589,10 +590,11 @@ const useGameStore = create(
     }),
 
   resetGame: () =>
-    set(() => ({
+    set((state) => ({
       gamePhase: 'splash',
       tournamentSize: 11,
       players: createPlayers(11),
+      audioResetTick: state.audioResetTick + 1,
       currentTurn: 1,
       bracketStage: 'prelims',
       pendingMatches: [],

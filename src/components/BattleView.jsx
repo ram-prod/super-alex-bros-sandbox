@@ -208,6 +208,7 @@ export default function BattleView() {
   const [hitSide, setHitSide] = useState(null);
   const [pendingLoserId, setPendingLoserId] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Intro sequence
   useEffect(() => {
@@ -287,6 +288,32 @@ export default function BattleView() {
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 4px)' }} />
 
+      {/* Exit modal */}
+      <AnimatePresence>
+        {showExitModal && (
+          <motion.div className="absolute inset-0 z-50 flex items-center justify-center px-6"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowExitModal(false)} />
+            <motion.div
+              className="relative z-10 bg-black/95 border-4 border-red-500/80 rounded-none p-8 max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.4)]"
+              style={{ transform: 'skewX(-2deg)' }}
+              initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 }}>
+              <h3 className="text-3xl font-black text-red-500 mb-2 uppercase">⚠️ End Tournament?</h3>
+              <p className="text-gray-300 text-lg mb-8 uppercase">Are you sure? All progress will be lost.</p>
+              <div className="flex gap-3">
+                <motion.button onClick={() => setShowExitModal(false)}
+                  className="flex-1 py-3 rounded-xl font-bold text-sm uppercase tracking-wider text-gray-300 border border-gray-600 hover:border-gray-400 transition-colors"
+                  style={{ transform: 'skewX(-5deg)' }} whileTap={{ scale: 0.95 }}>Cancel</motion.button>
+                <motion.button onClick={() => useGameStore.getState().resetGame()}
+                  className="flex-1 py-3 rounded-xl font-black text-sm uppercase tracking-wider bg-red-600 text-white border-2 border-red-500/50 hover:bg-red-500 transition-colors"
+                  style={{ transform: 'skewX(-5deg)' }} whileTap={{ scale: 0.95 }}>End Tournament</motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Character sprites — z-10 so they sit behind center UI */}
       <CharacterSprite player={player1} side="left" battleState={battleState}
         isLoser={battleState === 'action_hit' && hitSide === 'left'} />
@@ -346,6 +373,22 @@ export default function BattleView() {
               </motion.div>
               <DamageHUD player={player2} damage={p2Damage} side="right" />
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Exit button */}
+      <AnimatePresence>
+        {showUI && (
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+            className="absolute top-6 left-6 z-50">
+            <motion.button onClick={() => setShowExitModal(true)}
+              className="group flex items-center gap-2" whileHover={{ x: -4 }} whileTap={{ scale: 0.93 }}>
+              <div className="flex items-center gap-2 px-4 py-2 border-2 border-red-600/60 bg-gray-900/80 backdrop-blur-sm text-red-400 text-sm font-bold uppercase tracking-wider group-hover:border-red-400/60 group-hover:text-red-300 group-hover:bg-red-500/10 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.15)] transition-all duration-200"
+                style={{ transform: 'skewX(-10deg)' }}>
+                <span style={{ transform: 'skewX(10deg)' }} className="flex items-center gap-2"><span className="text-lg">✕</span><span>Exit</span></span>
+              </div>
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

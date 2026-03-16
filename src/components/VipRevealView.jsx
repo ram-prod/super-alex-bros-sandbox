@@ -48,10 +48,10 @@ export default function VipRevealView() {
         <motion.div className="mb-8"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
           <p className="text-2xl font-black text-yellow-300 mb-2">{vipPlayer?.name}</p>
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-400 text-xl sm:text-2xl">
             The Bachelor gets an automatic bye to the next round! 👑
           </p>
-          <p className="text-gray-500 text-xs mt-2">
+          <p className="text-gray-500 text-lg sm:text-xl mt-2">
             He watches the bloodbath from his throne.
           </p>
         </motion.div>

@@ -33,6 +33,7 @@ function App() {
   const bgmState = useGameStore((s) => s.bgmState);
   const currentTrack = useGameStore((s) => s.currentTrack);
   const toggleMute = useGameStore((s) => s.toggleMute);
+  const audioResetTick = useGameStore((s) => s.audioResetTick);
   const audioRef = useRef(null);
   const prevTrackRef = useRef(currentTrack);
   const View = views[gamePhase];
@@ -76,6 +77,11 @@ function App() {
 
     return () => clearInterval(interval);
   }, [bgmState]);
+
+  // Audio reset (on game reset)
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.currentTime = 0;
+  }, [audioResetTick]);
 
   // Mute toggle
   useEffect(() => {
