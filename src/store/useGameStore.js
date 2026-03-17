@@ -118,7 +118,79 @@ const useGameStore = create(
   questions: gameData.content || [],
   askedQuestionIds: [],
 
+  // Who Knows Alex trivia round
+  whoKnowsAlexQuestions: gameData.whoKnowsAlexQuestions || [],
+  whoKnowsAlexState: {
+    currentQuestionIndex: 0,
+    scores: {},          // { playerId: points }
+    revealedAnswer: false,
+    roundComplete: false,
+    questionOrder: [],   // shuffled question IDs
+  },
+
   // --- actions ---
+
+  // Who Knows Alex actions
+  startWhoKnowsAlex: () => {
+    const state = get();
+    const questions = state.whoKnowsAlexQuestions;
+    const shuffledIds = shuffle(questions.map((q) => q.id));
+    const scores = {};
+    state.players.forEach((p) => { scores[p.id] = 0; });
+    set({
+      gamePhase: 'who_knows_alex',
+      whoKnowsAlexState: {
+        currentQuestionIndex: 0,
+        scores,
+        revealedAnswer: false,
+        roundComplete: false,
+        questionOrder: shuffledIds,
+      },
+    });
+    state.setBgmState('playing', 'regular_game');
+  },
+
+  whoKnowsAlexReveal: () =>
+    set((state) => ({
+      whoKnowsAlexState: { ...state.whoKnowsAlexState, revealedAnswer: true },
+    })),
+
+  whoKnowsAlexAwardPoints: (playerIds) =>
+    set((state) => {
+      const newScores = { ...state.whoKnowsAlexState.scores };
+      playerIds.forEach((pid) => {
+        newScores[pid] = (newScores[pid] || 0) + 100;
+      });
+      return {
+        whoKnowsAlexState: { ...state.whoKnowsAlexState, scores: newScores },
+      };
+    }),
+
+  whoKnowsAlexNextQuestion: () =>
+    set((state) => {
+      const wka = state.whoKnowsAlexState;
+      const nextIndex = wka.currentQuestionIndex + 1;
+      if (nextIndex >= wka.questionOrder.length) {
+        return {
+          whoKnowsAlexState: { ...wka, roundComplete: true },
+        };
+      }
+      return {
+        whoKnowsAlexState: {
+          ...wka,
+          currentQuestionIndex: nextIndex,
+          revealedAnswer: false,
+        },
+      };
+    }),
+
+  exitWhoKnowsAlex: () =>
+    set(() => ({
+      gamePhase: 'tournament_overview',
+      bgmState: 'playing',
+      currentTrack: 'theme',
+    })),
+
   setTournamentSize: (size) => {
     const clamped = Math.max(2, Math.min(11, size));
     set({ tournamentSize: clamped, players: createPlayers(clamped), currentTurn: 1 });
@@ -575,6 +647,8 @@ const useGameStore = create(
   goBack: () =>
     set((state) => {
       if (state.gamePhase === 'map_select') return { gamePhase: 'tournament_overview' };
+      if (state.gamePhase === 'challenge_wheel') return { gamePhase: 'tournament_overview' };
+      if (state.gamePhase === 'who_knows_alex') return { gamePhase: 'tournament_overview', bgmState: 'playing', currentTrack: 'theme' };
       if (state.gamePhase === 'confirmation') return { gamePhase: 'roster_select' };
       if (state.gamePhase === 'vip_reveal' || state.gamePhase === 'vip_roulette') return { gamePhase: 'confirmation' };
       if (state.gamePhase === 'tournament_overview') return {
@@ -616,6 +690,13 @@ const useGameStore = create(
       askedQuestionIds: [],
       bgmState: 'paused',
       currentTrack: 'theme',
+      whoKnowsAlexState: {
+        currentQuestionIndex: 0,
+        scores: {},
+        revealedAnswer: false,
+        roundComplete: false,
+        questionOrder: [],
+      },
     })),
   }),
   {

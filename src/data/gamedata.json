@@ -29,5 +29,77 @@
     { "id": 3, "type": "challenge", "question": "First to press the button wins!", "answer": null },
     { "id": 4, "type": "trivia", "question": "How many characters in Smash 64?", "answer": "12" },
     { "id": 5, "type": "challenge", "question": "Mash the button — highest count wins!", "answer": null }
+  ],
+  "whoKnowsAlexQuestions": [
+    {
+      "id": 1,
+      "question": "What is Alexander's go-to karaoke song?",
+      "options": ["Wonderwall — Oasis", "Mr. Brightside — The Killers", "Bohemian Rhapsody — Queen", "Sweet Caroline — Neil Diamond"],
+      "correctIndex": 0,
+      "timeLimit": 20
+    },
+    {
+      "id": 2,
+      "question": "What was Alexander's first ever job?",
+      "options": ["Bartender at Hotel School", "Waiter at Pizza Hut", "Lifeguard", "DJ at a beach club"],
+      "correctIndex": 0,
+      "timeLimit": 20
+    },
+    {
+      "id": 3,
+      "question": "What is Alexander's biggest irrational fear?",
+      "options": ["Pigeons", "Clowns", "Deep water", "Elevators"],
+      "correctIndex": 0,
+      "timeLimit": 15
+    },
+    {
+      "id": 4,
+      "question": "How does Alexander take his coffee?",
+      "options": ["Black, no sugar", "Flat white", "Cappuccino with extra foam", "He doesn't drink coffee"],
+      "correctIndex": 0,
+      "timeLimit": 15
+    },
+    {
+      "id": 5,
+      "question": "What city would Alexander move to if money was no object?",
+      "options": ["New York", "Tokyo", "Barcelona", "Lisbon"],
+      "correctIndex": 0,
+      "timeLimit": 20
+    },
+    {
+      "id": 6,
+      "question": "What is Alexander's hidden talent?",
+      "options": ["Juggling", "Beatboxing", "Card tricks", "Cooking pasta from scratch"],
+      "correctIndex": 0,
+      "timeLimit": 15
+    },
+    {
+      "id": 7,
+      "question": "What was Alexander's nickname in school?",
+      "options": ["Alex the Great", "Big Al", "Xander", "Sasha"],
+      "correctIndex": 0,
+      "timeLimit": 15
+    },
+    {
+      "id": 8,
+      "question": "What is Alexander's most rewatched movie?",
+      "options": ["The Wolf of Wall Street", "Interstellar", "Superbad", "The Godfather"],
+      "correctIndex": 0,
+      "timeLimit": 20
+    },
+    {
+      "id": 9,
+      "question": "What sport did Alexander play as a kid?",
+      "options": ["Tennis", "Soccer", "Basketball", "Swimming"],
+      "correctIndex": 0,
+      "timeLimit": 15
+    },
+    {
+      "id": 10,
+      "question": "What is Alexander's most embarrassing party story?",
+      "options": ["Fell asleep in a bush", "Sang on a table at a restaurant", "Lost his shoes on a night out", "Accidentally crashed a wedding"],
+      "correctIndex": 0,
+      "timeLimit": 20
+    }
   ]
 }

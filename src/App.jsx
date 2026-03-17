@@ -12,6 +12,8 @@ import RulesView from './components/RulesView';
 import ConfirmationView from './components/ConfirmationView';
 import VipRevealView from './components/VipRevealView';
 import VipRouletteView from './components/VipRouletteView';
+import ChallengeWheelView from './components/ChallengeWheelView';
+import WhoKnowsAlexView from './components/WhoKnowsAlexView';
 
 const views = {
   splash: SplashView,
@@ -25,6 +27,8 @@ const views = {
   confirmation: ConfirmationView,
   vip_reveal: VipRevealView,
   vip_roulette: VipRouletteView,
+  challenge_wheel: ChallengeWheelView,
+  who_knows_alex: WhoKnowsAlexView,
 };
 
 function App() {

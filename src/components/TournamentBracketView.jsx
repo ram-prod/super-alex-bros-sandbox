@@ -327,7 +327,43 @@ export default function TournamentBracketView() {
             Bachelor&apos;s Knockout
           </p>
         </div>
-        <div className="w-16" />
+        {/* Quick-launch buttons — quiz masters can trigger between matches */}
+        <div className="flex items-center gap-2 z-50">
+          <motion.button
+            onClick={() => useGameStore.getState().startWhoKnowsAlex()}
+            className="group flex items-center gap-2"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.93 }}
+            title="Who Knows Alexander Best?"
+          >
+            <div
+              className="flex items-center gap-2 px-3 py-2 border-2 border-purple-500/40 bg-gray-900/80 backdrop-blur-sm text-purple-300 text-sm font-bold uppercase tracking-wider group-hover:border-purple-400/70 group-hover:text-purple-200 group-hover:bg-purple-500/10 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all duration-200"
+              style={{ transform: 'skewX(-10deg)' }}
+            >
+              <span style={{ transform: 'skewX(10deg)' }} className="flex items-center gap-1.5">
+                <span className="text-lg">👑</span>
+                <span className="hidden sm:inline">Trivia</span>
+              </span>
+            </div>
+          </motion.button>
+          <motion.button
+            onClick={() => useGameStore.setState({ gamePhase: 'challenge_wheel' })}
+            className="group flex items-center gap-2"
+            whileHover={{ scale: 1.08, rotate: [0, -5, 5, 0] }}
+            whileTap={{ scale: 0.93 }}
+            title="Spin the Challenge Wheel"
+          >
+            <div
+              className="flex items-center gap-2 px-3 py-2 border-2 border-yellow-500/40 bg-gray-900/80 backdrop-blur-sm text-yellow-400 text-sm font-bold uppercase tracking-wider group-hover:border-yellow-400/70 group-hover:text-yellow-300 group-hover:bg-yellow-500/10 group-hover:shadow-[0_0_20px_rgba(250,204,21,0.2)] transition-all duration-200"
+              style={{ transform: 'skewX(-10deg)' }}
+            >
+              <span style={{ transform: 'skewX(10deg)' }} className="flex items-center gap-1.5">
+                <span className="text-lg">🍺</span>
+                <span className="hidden sm:inline">Wheel</span>
+              </span>
+            </div>
+          </motion.button>
+        </div>
       </div>
 
       {/* Wildcard overlay */}
