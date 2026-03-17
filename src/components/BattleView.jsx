@@ -209,6 +209,8 @@ export default function BattleView() {
   const [pendingLoserId, setPendingLoserId] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [triviaRevealed, setTriviaRevealed] = useState(false);
 
   // Intro sequence
   useEffect(() => {
@@ -264,6 +266,8 @@ export default function BattleView() {
       if (phase === 'battle') {
         setBattleState('idle_question');
         setShowAnswer(false);
+        setSelectedOption(null);
+        setTriviaRevealed(false);
         setThrowFrom(null);
         setHitSide(null);
         setPendingLoserId(null);
@@ -416,12 +420,118 @@ export default function BattleView() {
             {/* Question area */}
             <div className="w-full max-w-2xl bg-gray-900/80 backdrop-blur-md border-2 border-yellow-500/30 rounded-2xl p-6 sm:p-8 text-center mb-6 shadow-[0_0_30px_rgba(250,204,21,0.15)]">
               <div className="text-yellow-400 text-xs font-black uppercase tracking-[0.3em] mb-4">
-                {currentMatch.activeQuestion?.type === 'trivia' ? '🧠 TRIVIA TIME' : '⚡ MINIGAME CHALLENGE'}
+                {currentMatch.activeQuestion?.type === 'bachelor_trivia'
+                  ? '👑 WHO KNOWS ALEXANDER BEST?'
+                  : currentMatch.activeQuestion?.type === 'trivia'
+                    ? '🧠 TRIVIA TIME'
+                    : '⚡ MINIGAME CHALLENGE'}
               </div>
               <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-snug mb-6">
                 {currentMatch.activeQuestion?.question || 'Are you ready?'}
               </h3>
-              {currentMatch.activeQuestion?.answer && (
+
+              {/* Bachelor trivia — multiple choice options */}
+              {currentMatch.activeQuestion?.type === 'bachelor_trivia' && currentMatch.activeQuestion?.options && (
+                <div className="mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                    {currentMatch.activeQuestion.options.map((option, idx) => {
+                      const isCorrect = idx === currentMatch.activeQuestion.correctIndex;
+                      const isSelected = selectedOption === idx;
+                      const isWrong = triviaRevealed && isSelected && !isCorrect;
+                      const isRight = triviaRevealed && isCorrect;
+
+                      const optionLabel = String.fromCharCode(65 + idx);
+
+                      return (
+                        <motion.button
+                          key={idx}
+                          onClick={() => {
+                            if (!triviaRevealed) setSelectedOption(idx);
+                          }}
+                          className="group w-full text-left"
+                          whileHover={!triviaRevealed ? { scale: 1.03 } : {}}
+                          whileTap={!triviaRevealed ? { scale: 0.97 } : {}}
+                        >
+                          <motion.div
+                            className="px-4 py-3 rounded-lg border-2 font-bold text-base sm:text-lg flex items-center gap-3 transition-colors duration-200"
+                            animate={{
+                              borderColor: isRight
+                                ? '#22c55e'
+                                : isWrong
+                                  ? '#ef4444'
+                                  : isSelected
+                                    ? '#facc15'
+                                    : 'rgba(255,255,255,0.2)',
+                              backgroundColor: isRight
+                                ? 'rgba(34,197,94,0.2)'
+                                : isWrong
+                                  ? 'rgba(239,68,68,0.2)'
+                                  : isSelected
+                                    ? 'rgba(250,204,21,0.15)'
+                                    : 'rgba(0,0,0,0.4)',
+                              scale: isRight ? 1.04 : 1,
+                            }}
+                            transition={{ duration: 0.35, ease: 'easeOut' }}
+                          >
+                            <span
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0"
+                              style={{
+                                backgroundColor: isRight
+                                  ? '#22c55e'
+                                  : isWrong
+                                    ? '#ef4444'
+                                    : isSelected
+                                      ? '#facc15'
+                                      : 'rgba(255,255,255,0.15)',
+                                color: isSelected || isRight || isWrong ? '#000' : '#fff',
+                              }}
+                            >
+                              {isRight ? '✓' : isWrong ? '✕' : optionLabel}
+                            </span>
+                            <span className={`${isRight ? 'text-green-300' : isWrong ? 'text-red-300' : 'text-white'}`}>
+                              {option}
+                            </span>
+                          </motion.div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Reveal button for bachelor trivia */}
+                  {!triviaRevealed ? (
+                    <motion.button
+                      onClick={() => setTriviaRevealed(true)}
+                      className="group"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="px-6 py-2 border-2 border-purple-500/60 bg-purple-900/60 rounded-sm group-hover:border-purple-400 group-hover:bg-purple-800/60 transition-all duration-200"
+                        style={{ transform: 'skewX(-10deg)' }}>
+                        <div style={{ transform: 'skewX(10deg)' }} className="text-smash text-sm text-purple-200">
+                          👑 Reveal Answer
+                        </div>
+                      </div>
+                    </motion.button>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.6, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+                      className="p-4 rounded-xl bg-green-500/20 border border-green-500/50"
+                    >
+                      <span
+                        className="text-green-400 font-black text-xl sm:text-2xl uppercase tracking-wide"
+                        style={{ textShadow: '0 0 12px rgba(34,197,94,0.4), 0 2px 4px rgba(0,0,0,0.8)' }}
+                      >
+                        {currentMatch.activeQuestion.answer}
+                      </span>
+                    </motion.div>
+                  )}
+                </div>
+              )}
+
+              {/* Standard trivia — reveal answer button */}
+              {currentMatch.activeQuestion?.type !== 'bachelor_trivia' && currentMatch.activeQuestion?.answer && (
                 <div className="mt-6">
                   {!showAnswer ? (
                     <motion.button

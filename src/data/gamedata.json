@@ -28,7 +28,17 @@
     { "id": 2, "type": "trivia", "question": "Who is the fastest character?", "answer": "Captain Falcon" },
     { "id": 3, "type": "challenge", "question": "First to press the button wins!", "answer": null },
     { "id": 4, "type": "trivia", "question": "How many characters in Smash 64?", "answer": "12" },
-    { "id": 5, "type": "challenge", "question": "Mash the button — highest count wins!", "answer": null }
+    { "id": 5, "type": "challenge", "question": "Mash the button — highest count wins!", "answer": null },
+    { "id": 6, "type": "bachelor_trivia", "question": "What is Alexander's go-to karaoke song?", "answer": "Wonderwall — Oasis", "options": ["Wonderwall — Oasis", "Mr. Brightside — The Killers", "Bohemian Rhapsody — Queen", "Sweet Caroline — Neil Diamond"], "correctIndex": 0 },
+    { "id": 7, "type": "bachelor_trivia", "question": "What was Alexander's first ever job?", "answer": "Bartender at Hotel School", "options": ["Bartender at Hotel School", "Waiter at Pizza Hut", "Lifeguard", "DJ at a beach club"], "correctIndex": 0 },
+    { "id": 8, "type": "bachelor_trivia", "question": "What is Alexander's biggest irrational fear?", "answer": "Pigeons", "options": ["Pigeons", "Clowns", "Deep water", "Elevators"], "correctIndex": 0 },
+    { "id": 9, "type": "bachelor_trivia", "question": "How does Alexander take his coffee?", "answer": "Black, no sugar", "options": ["Black, no sugar", "Flat white", "Cappuccino with extra foam", "He doesn't drink coffee"], "correctIndex": 0 },
+    { "id": 10, "type": "bachelor_trivia", "question": "What city would Alexander move to if money was no object?", "answer": "New York", "options": ["New York", "Tokyo", "Barcelona", "Lisbon"], "correctIndex": 0 },
+    { "id": 11, "type": "bachelor_trivia", "question": "What is Alexander's hidden talent?", "answer": "Juggling", "options": ["Juggling", "Beatboxing", "Card tricks", "Cooking pasta from scratch"], "correctIndex": 0 },
+    { "id": 12, "type": "bachelor_trivia", "question": "What was Alexander's nickname in school?", "answer": "Alex the Great", "options": ["Alex the Great", "Big Al", "Xander", "Sasha"], "correctIndex": 0 },
+    { "id": 13, "type": "bachelor_trivia", "question": "What is Alexander's most rewatched movie?", "answer": "The Wolf of Wall Street", "options": ["The Wolf of Wall Street", "Interstellar", "Superbad", "The Godfather"], "correctIndex": 0 },
+    { "id": 14, "type": "bachelor_trivia", "question": "What sport did Alexander play as a kid?", "answer": "Tennis", "options": ["Tennis", "Soccer", "Basketball", "Swimming"], "correctIndex": 0 },
+    { "id": 15, "type": "bachelor_trivia", "question": "What is Alexander's most embarrassing party story?", "answer": "Fell asleep in a bush", "options": ["Fell asleep in a bush", "Sang on a table at a restaurant", "Lost his shoes on a night out", "Accidentally crashed a wedding"], "correctIndex": 0 }
   ],
   "whoKnowsAlexQuestions": [
     {

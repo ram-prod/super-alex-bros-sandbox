@@ -91,7 +91,7 @@ function WheelCanvas({ rotation, isSpinning }) {
 
       {/* Main wheel SVG */}
       <motion.div
-        style={{ rotate: rotation }}
+        animate={{ rotate: rotation }}
         transition={{ type: 'tween', ease: [0.2, 0.8, 0.3, 1], duration: isSpinning ? 4 : 0 }}
       >
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -263,7 +263,7 @@ function ResultCard({ segment, onSpin, onBack }) {
 
         <motion.h2
           className="text-3xl sm:text-4xl font-black text-white mb-2 uppercase"
-          style={{ WebkitTextStroke: '1.5px rgba(0,0,0,0.5)' }}
+          style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.4)' }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}

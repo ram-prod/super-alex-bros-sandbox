@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useGameStore from '../store/useGameStore';
 
@@ -34,6 +34,21 @@ const getPowerLevel = (player) => {
   return (base[player.chosenCharacter] || 8000) + (player.wins || 0) * 500;
 };
 
+// Generate random stats (seeded by character name for consistency within a session)
+const getRandomStats = (charId) => {
+  // Simple hash from charId to get pseudo-random but consistent values
+  const seed = (charId || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const rand = (offset) => {
+    const x = Math.sin(seed + offset) * 10000;
+    return Math.floor((x - Math.floor(x)) * 7) + 4; // Range 4-10
+  };
+  return {
+    atk: rand(1),
+    def: rand(2),
+    spd: rand(3),
+  };
+};
+
 // ---- Screen shake hook (from animation-patterns.md recipe) ----
 const useScreenShake = () => {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -61,27 +76,27 @@ const useScreenShake = () => {
   return { offset, shake };
 };
 
-// ---- Spark particle for VS impact ----
-const SPARKS = Array.from({ length: 16 }, (_, i) => ({
+// ---- Spark particles for VS impact ----
+const SPARKS = Array.from({ length: 20 }, (_, i) => ({
   id: i,
-  angle: (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.4,
-  distance: 80 + Math.random() * 120,
+  angle: (i / 20) * Math.PI * 2 + (Math.random() - 0.5) * 0.4,
+  distance: 60 + Math.random() * 140,
   size: 2 + Math.random() * 4,
-  delay: Math.random() * 0.1,
-  emoji: ['✨', '⚡', '💥', '🔥'][i % 4],
+  delay: Math.random() * 0.15,
+  emoji: ['✨', '⚡', '💥', '🔥', '✨'][i % 5],
 }));
 
 // ---- Animated stat bar ----
 function StatBar({ label, value, maxValue, color, delay }) {
   return (
     <motion.div
-      className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
+      className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold uppercase tracking-wider"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, type: 'spring', stiffness: 200, damping: 15 }}
     >
-      <span className="text-gray-400 w-10 text-right">{label}</span>
-      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden min-w-[80px]">
+      <span className="text-gray-400 w-8 sm:w-10 text-right text-[10px] sm:text-xs shrink-0">{label}</span>
+      <div className="flex-1 h-1.5 sm:h-2 bg-gray-800 rounded-full overflow-hidden min-w-[60px] sm:min-w-[80px]">
         <motion.div
           className="h-full rounded-full"
           style={{ backgroundColor: color }}
@@ -90,12 +105,12 @@ function StatBar({ label, value, maxValue, color, delay }) {
           transition={{ delay: delay + 0.2, duration: 0.6, ease: 'easeOut' }}
         />
       </div>
-      <span className="text-white/70 w-6 text-left font-mono">{value}</span>
+      <span className="text-white/70 w-5 sm:w-6 text-left font-mono text-[10px] sm:text-xs shrink-0">{value}</span>
     </motion.div>
   );
 }
 
-// ---- Fighter Card ----
+// ---- Fighter Card with cinematic split-screen entrance ----
 function FighterCard({ player, side, phase, color, isFinal }) {
   const charId = player?.chosenCharacter;
   const [imgError, setImgError] = useState(false);
@@ -105,10 +120,8 @@ function FighterCard({ player, side, phase, color, isFinal }) {
   const power = getPowerLevel(player);
   const isVip = charId === 'alexander';
 
-  // Stats: ATK, DEF, SPD derived from power + some variance per character
-  const atk = Math.min(10, Math.round(power / 1200 + (player?.wins || 0)));
-  const def = Math.min(10, Math.round(power / 1400 + (charId === 'frederik' ? 2 : 0)));
-  const spd = Math.min(10, Math.round(power / 1300 + (charId === 'koen' ? 2 : 0)));
+  // Random stats (ATK, DEF, SPD)
+  const stats = useMemo(() => getRandomStats(charId), [charId]);
 
   const showCard = phase >= 1;
   const showStats = phase >= 3;
@@ -186,7 +199,7 @@ function FighterCard({ player, side, phase, color, isFinal }) {
           >
             <div
               className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-0.5"
-              style={{ WebkitTextStroke: '1px rgba(0,0,0,0.5)' }}
+              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8), 1px 1px 0 rgba(0,0,0,0.5)' }}
             >
               {player?.name}
             </div>
@@ -209,21 +222,21 @@ function FighterCard({ player, side, phase, color, isFinal }) {
             <span className="text-gray-400">{style}</span>
           </motion.div>
 
-          {/* Stats panel */}
+          {/* Stats panel with random ATK/DEF/SPD */}
           <AnimatePresence>
             {showStats && (
               <motion.div
-                className={`mt-3 w-full max-w-[200px] space-y-1.5 ${isLeft ? 'pr-2' : 'pl-2'}`}
+                className={`mt-3 w-full max-w-[180px] sm:max-w-[200px] space-y-1 sm:space-y-1.5 ${isLeft ? 'pr-2' : 'pl-2'}`}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 transition={{ duration: 0.3, delay: 0.1 }}
               >
-                <StatBar label="ATK" value={atk} maxValue={10} color="#ef4444" delay={isLeft ? 0.1 : 0.2} />
-                <StatBar label="DEF" value={def} maxValue={10} color="#3b82f6" delay={isLeft ? 0.2 : 0.3} />
-                <StatBar label="SPD" value={spd} maxValue={10} color="#22c55e" delay={isLeft ? 0.3 : 0.4} />
+                <StatBar label="ATK" value={stats.atk} maxValue={10} color="#ef4444" delay={isLeft ? 0.1 : 0.2} />
+                <StatBar label="DEF" value={stats.def} maxValue={10} color="#3b82f6" delay={isLeft ? 0.2 : 0.3} />
+                <StatBar label="SPD" value={stats.spd} maxValue={10} color="#22c55e" delay={isLeft ? 0.3 : 0.4} />
                 {/* Power level */}
                 <motion.div
-                  className="text-center mt-2 font-mono font-black text-lg"
+                  className="text-center mt-2 font-mono font-black text-base sm:text-lg"
                   style={{ color }}
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -246,23 +259,23 @@ export default function VsScreenView() {
   const isFinal = currentMatch.isFinal;
   const { offset, shake } = useScreenShake();
 
-  // Multi-phase entrance animation:
-  // 0 = blackout, 1 = fighters slide in, 2 = VS slam + shake, 3 = stats reveal, 4 = button appears
+  // Multi-phase cinematic entrance sequence (~3 seconds total):
+  // 0 = blackout, 1 = split-screen reveal + fighters slide in, 2 = VS slam + camera shake + sparks, 3 = stats reveal, 4 = button appears
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
     const timers = [];
-    // Phase 1: fighters slide in (after brief blackout)
+    // Phase 1: split-screen panels slide open, fighters enter from opposite sides
     timers.push(setTimeout(() => setPhase(1), 400));
-    // Phase 2: VS slam with camera shake
+    // Phase 2: VS text slams in with camera shake + spark explosion
     timers.push(setTimeout(() => {
       setPhase(2);
-      shake(12, 500);
+      shake(14, 600);
       playSFX('smash', 0.7);
     }, 1200));
-    // Phase 3: stats reveal
+    // Phase 3: stats bars animate in
     timers.push(setTimeout(() => setPhase(3), 2000));
-    // Phase 4: button appears
+    // Phase 4: COMMENCE BATTLE button appears
     timers.push(setTimeout(() => setPhase(4), 2800));
     return () => timers.forEach(clearTimeout);
   }, [shake, playSFX]);
@@ -276,25 +289,25 @@ export default function VsScreenView() {
       animate={{ x: offset.x, y: offset.y }}
       transition={{ duration: 0 }}
     >
-      {/* Dynamic split background with character colors */}
+      {/* Split-screen background reveal — panels slide in from opposite sides */}
       <div className="absolute inset-0 flex">
         <motion.div
           className="w-1/2"
           style={{ background: `linear-gradient(135deg, ${color1}30 0%, ${color1}10 40%, #000 100%)` }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          initial={{ x: '-100%', opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
         />
         <motion.div
           className="w-1/2"
           style={{ background: `linear-gradient(225deg, ${color2}30 0%, ${color2}10 40%, #000 100%)` }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          initial={{ x: '100%', opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
         />
       </div>
 
-      {/* Animated diagonal energy slash */}
+      {/* Animated diagonal energy slash at the center split */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
           className="absolute top-0 left-1/2 w-1 h-full"
@@ -312,7 +325,7 @@ export default function VsScreenView() {
           } : {}}
           transition={{ duration: 0.3, ease: 'easeOut' }}
         />
-        {/* Secondary glow lines */}
+        {/* Secondary glow lines flanking the center */}
         {phase >= 2 && (
           <>
             <motion.div
@@ -372,7 +385,7 @@ export default function VsScreenView() {
         )}
       </AnimatePresence>
 
-      {/* Blackout flash on VS slam */}
+      {/* White flash on VS impact */}
       <AnimatePresence>
         {phase === 2 && (
           <motion.div
@@ -430,15 +443,15 @@ export default function VsScreenView() {
 
         {/* Fighters + VS */}
         <div className="w-full max-w-5xl flex items-center justify-between mb-4">
-          {/* Player 1 */}
+          {/* Player 1 — slides in from left */}
           <FighterCard player={player1} side="left" phase={phase} color={color1} isFinal={isFinal} />
 
-          {/* VS emblem */}
+          {/* VS emblem — slams into center */}
           <div className="mx-2 sm:mx-4 flex-shrink-0 relative">
             <AnimatePresence>
               {phase >= 2 && (
                 <>
-                  {/* Spark explosion on VS slam */}
+                  {/* Spark particle explosion emanating from center on VS impact */}
                   {SPARKS.map((spark) => (
                     <motion.div
                       key={spark.id}
@@ -451,13 +464,46 @@ export default function VsScreenView() {
                         opacity: 0,
                         scale: 0,
                       }}
-                      transition={{ duration: 0.6, delay: spark.delay, ease: 'easeOut' }}
+                      transition={{ duration: 0.7, delay: spark.delay, ease: 'easeOut' }}
                     >
                       {spark.emoji}
                     </motion.div>
                   ))}
 
-                  {/* VS text */}
+                  {/* Impact ring — expands outward from VS */}
+                  <motion.div
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      left: '50%',
+                      top: '50%',
+                      width: 20,
+                      height: 20,
+                      marginLeft: -10,
+                      marginTop: -10,
+                      border: '3px solid rgba(250, 204, 21, 0.8)',
+                    }}
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 12, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  />
+                  {/* Second impact ring with delay */}
+                  <motion.div
+                    className="absolute rounded-full pointer-events-none"
+                    style={{
+                      left: '50%',
+                      top: '50%',
+                      width: 20,
+                      height: 20,
+                      marginLeft: -10,
+                      marginTop: -10,
+                      border: '2px solid rgba(255, 255, 255, 0.5)',
+                    }}
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 8, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
+                  />
+
+                  {/* VS text — slams in from large scale with rotation */}
                   <motion.div
                     initial={{ scale: 6, opacity: 0, rotate: -20 }}
                     animate={{ scale: 1, opacity: 1, rotate: 0 }}
@@ -467,20 +513,20 @@ export default function VsScreenView() {
                       className="text-7xl sm:text-8xl md:text-9xl font-black"
                       animate={{
                         textShadow: [
-                          '0 0 20px rgba(250,204,21,0.4), 0 0 60px rgba(250,204,21,0.2)',
-                          '0 0 60px rgba(250,204,21,0.9), 0 0 120px rgba(250,204,21,0.5)',
-                          '0 0 20px rgba(250,204,21,0.4), 0 0 60px rgba(250,204,21,0.2)',
+                          '0 0 20px rgba(250,204,21,0.4), 0 0 60px rgba(250,204,21,0.2), 0 2px 4px rgba(0,0,0,0.8)',
+                          '0 0 60px rgba(250,204,21,0.9), 0 0 120px rgba(250,204,21,0.5), 0 2px 4px rgba(0,0,0,0.8)',
+                          '0 0 20px rgba(250,204,21,0.4), 0 0 60px rgba(250,204,21,0.2), 0 2px 4px rgba(0,0,0,0.8)',
                         ],
                       }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                       style={{
-                        WebkitTextStroke: '3px rgba(255,255,255,0.4)',
                         color: 'transparent',
                         background: isFinal
                           ? 'linear-gradient(180deg, #ffd700, #ff6b00, #ff0000)'
                           : 'linear-gradient(180deg, #facc15, #f97316, #ef4444)',
                         WebkitBackgroundClip: 'text',
                         backgroundClip: 'text',
+                        filter: 'drop-shadow(0 4px 0 rgba(0,0,0,0.6))',
                       }}
                     >
                       VS
@@ -491,7 +537,7 @@ export default function VsScreenView() {
             </AnimatePresence>
           </div>
 
-          {/* Player 2 */}
+          {/* Player 2 — slides in from right */}
           <FighterCard player={player2} side="right" phase={phase} color={color2} isFinal={isFinal} />
         </div>
 
@@ -527,25 +573,26 @@ export default function VsScreenView() {
                 whileTap={{ scale: 0.92 }}
               >
                 <motion.div
-                  className={`flex items-center justify-center px-10 sm:px-14 py-4 sm:py-5 border-2 backdrop-blur-md transition-all duration-300 ${
+                  className={`flex items-center justify-center px-10 sm:px-14 py-4 sm:py-5 border-2 backdrop-blur-md transition-colors duration-300 ${
                     isFinal
                       ? 'bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20 border-yellow-400/80 text-yellow-300'
                       : 'bg-red-600/20 border-red-500/80 text-red-400 hover:bg-red-600/30 hover:border-red-400'
                   }`}
-                  style={{ transform: 'skewX(-10deg)' }}
                   animate={{
+                    skewX: -10,
                     boxShadow: isFinal
                       ? ['0 0 20px rgba(250,204,21,0.3)', '0 0 60px rgba(250,204,21,0.7)', '0 0 20px rgba(250,204,21,0.3)']
                       : ['0 0 20px rgba(239,68,68,0.2)', '0 0 50px rgba(239,68,68,0.5)', '0 0 20px rgba(239,68,68,0.2)'],
                   }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  <div
+                  <motion.div
                     className="text-3xl sm:text-4xl font-black uppercase tracking-wider"
-                    style={{ transform: 'skewX(10deg)', WebkitTextStroke: '1px rgba(0,0,0,0.5)' }}
+                    style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8), 1px 1px 0 rgba(0,0,0,0.5)' }}
+                    animate={{ skewX: 10 }}
                   >
                     ⚔️ COMMENCE BATTLE ⚔️
-                  </div>
+                  </motion.div>
                 </motion.div>
               </motion.div>
             </motion.button>
